@@ -1,6 +1,6 @@
 # Yir Agent Skills
 
-Official [Agent Skills](https://agentskills.io) for [Yir](https://yir.ai), the unified async AI gateway for image and video generation.
+Official [Agent Skills](https://agentskills.io) for [Yir](https://yir.ai), the image & video API router.
 
 The `yir` skill lets coding agents such as Claude Code and Codex generate images, edit images from local files, and generate videos through one Yir API key. It lists models and prices, quotes a request, submits the job, waits for the result and saves the files locally.
 

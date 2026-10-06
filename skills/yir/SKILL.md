@@ -1,6 +1,6 @@
 ---
 name: yir
-description: Generate and edit images and generate videos through Yir, the unified async AI gateway (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, compare or pick image/video models and prices, or check, download or cancel a Yir job by ID. Requires YIR_API_KEY.
+description: Generate and edit images and generate videos through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, compare or pick image/video models and prices, or check, download or cancel a Yir job by ID. Requires YIR_API_KEY.
 ---
 
 # Yir image and video jobs
