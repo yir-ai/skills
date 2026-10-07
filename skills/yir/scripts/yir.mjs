@@ -2,11 +2,11 @@
 // Yir Standard API command line for agents. Zero dependencies, Node.js >= 18.
 // Auth: YIR_API_KEY (required). Optional YIR_BASE_URL (default https://gateway.yir.ai).
 import { parseArgs } from "node:util";
-import { readFile, writeFile, mkdir, stat } from "node:fs/promises";
+import { readFile, writeFile, mkdir, stat, rm } from "node:fs/promises";
 import { basename, dirname, extname, join, resolve } from "node:path";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
-const VERSION = "0.2.0";
+const VERSION = "0.2.1";
 const CONSOLE_URL = "https://yir.ai";
 const BASE_URL = (process.env.YIR_BASE_URL || "https://gateway.yir.ai").trim().replace(/\/+$/, "");
 const REQUEST_TIMEOUT_MS = 30000;
@@ -14,6 +14,7 @@ const TERMINAL = new Set(["succeeded", "failed", "cancelled"]);
 const JOB_ID = /^[1-9][0-9]*$/;
 const NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/;
 const BATCH_STATE = ".yir-batch.json";
+const PENDING_DIR = ".yir-pending";
 const MEDIA_TYPES = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp",
   ".mp4": "video/mp4", ".webm": "video/webm", ".mp3": "audio/mpeg", ".wav": "audio/wav" };
 const EXTENSIONS = { "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp", "image/gif": ".gif",
@@ -411,24 +412,59 @@ async function cmdQuote(kind, values) {
   return 0;
 }
 
+// Until a Job reaches a terminal state, the exact request and its idempotency key live in
+// <out>/.yir-pending/<command hash>.json. Re-running the same command then re-sends the same bytes under
+// the same key (a lost response cannot create a second Job) or keeps waiting on the Job it already has.
+// Once the Job is terminal the record is removed, so running the command again asks for a new generation.
+function pendingPath(kind, values) {
+  const refs = parseRefs(`generate_${kind}`, values).map(r => ({ role: r.role, src: /^https:\/\//i.test(r.src) || /^file_/.test(r.src) ? r.src : resolve(r.src) }));
+  const id = JSON.stringify([kind, values.model, values.prompt, parseParams(values.param), refs, values.routing ?? null, values["max-cost"] ?? null, values.name ?? null]);
+  return resolve(join(values.out || "yir-output", PENDING_DIR, `${createHash("sha256").update(id).digest("hex").slice(0, 32)}.json`));
+}
+
 async function cmdGenerate(kind, values) {
   if (values.name !== undefined) stemOf(values, {});
-  const body = await buildRequest(`generate_${kind}`, values);
-  if (values["max-cost"]) {
-    if (!/^\d+(\.\d+)?$/.test(values["max-cost"])) throw new UsageError("--max-cost must be a decimal USD amount, e.g. 0.20");
-    body.max_cost = values["max-cost"];
+  if (values["max-cost"] && !/^\d+(\.\d+)?$/.test(values["max-cost"])) throw new UsageError("--max-cost must be a decimal USD amount, e.g. 0.20");
+  const path = pendingPath(kind, values);
+  let pending;
+  try { pending = JSON.parse(await readFile(path, "utf8")); } catch { pending = undefined; }
+  const persistPending = () => mkdir(dirname(path), { recursive: true }).then(() => writeFile(path, `${JSON.stringify(pending, null, 2)}\n`));
+  let jobId = pending?.job_id;
+  if (jobId) {
+    log(`resuming job ${jobId} from an earlier run of this command`);
+  } else {
+    if (pending?.body) {
+      log("re-sending the unconfirmed submit from an earlier run of this command");
+    } else {
+      const body = await buildRequest(`generate_${kind}`, values);
+      if (values["max-cost"]) body.max_cost = values["max-cost"];
+      pending = { idempotency_key: randomUUID(), body, request: requestRecord(body, parseRefs(`generate_${kind}`, values)) };
+      await persistPending();
+    }
+    let job;
+    try {
+      job = await submit(`/v1/${kind}s/generations`, pending.body, pending.idempotency_key);
+    } catch (e) {
+      // A definite rejection created no Job; forget it so a corrected command starts clean.
+      if (e instanceof APIError && e.status < 500 && e.code !== "YIR_RATE_LIMITED") await rm(path, { force: true });
+      throw e;
+    }
+    jobId = job.id;
+    pending.job_id = jobId;
+    await persistPending();
+    log(`submitted job ${jobId} (${job.status}) model=${pending.body.model} params=${JSON.stringify(pending.body.parameters)}`);
+    if (values["no-wait"]) return print(summarizeJob(job)), 0;
   }
-  const job = await submit(`/v1/${kind}s/generations`, body);
-  log(`submitted job ${job.id} (${job.status}) model=${body.model} params=${JSON.stringify(body.parameters)}`);
-  if (values["no-wait"]) return print(summarizeJob(job)), 0;
   const timeout = Number(values.timeout || (kind === "video" ? 1800 : 600));
-  const done = await waitForJob(job.id, timeout);
-  if (!done) return timedOut(job.id, timeout);
-  return finish(done, values, requestRecord(body, parseRefs(`generate_${kind}`, values)));
+  const done = await waitForJob(jobId, timeout);
+  if (!done) return timedOut(jobId, timeout);
+  const code = await finish(done, values, pending.request);
+  await rm(path, { force: true });
+  return code;
 }
 
 function timedOut(id, timeout) {
-  print({ id, status: "still_running", message: `Not terminal after ${timeout}s. The Job keeps running; resume with: node yir.mjs job ${id} --wait --download` });
+  print({ id, status: "still_running", message: `Not terminal after ${timeout}s. The Job keeps running; re-run the same command, or: node yir.mjs job ${id} --wait --download` });
   return 3;
 }
 
@@ -526,7 +562,16 @@ async function cmdBatch(file, values) {
   let quoted = 0;
   const problems = [];
   for (const j of todo) {
-    if (state.jobs[j.name]?.job_id) continue;
+    const prior = state.jobs[j.name];
+    if (prior?.job_id) continue;
+    // An earlier submit whose outcome is unknown is re-sent byte for byte under its key, so it cannot become a second Job.
+    if (prior?.idempotency_key && prior.body) {
+      j.body = prior.body;
+      j.quote = prior.quote;
+      quoted += j.quote;
+      log(`${j.name}: re-sending the unconfirmed submit from an earlier run`);
+      continue;
+    }
     try {
       j.body = await buildRequest(`generate_${j.kind}`, j.values, j.params);
       if (j.maxCost) j.body.max_cost = j.maxCost;
@@ -561,7 +606,9 @@ async function cmdBatch(file, values) {
           return;
         }
         s.idempotency_key ||= randomUUID();
-        s.request = requestRecord(j.body, parseRefs(`generate_${j.kind}`, j.values));
+        s.body = j.body;
+        s.quote = j.quote;
+        s.request ||= requestRecord(j.body, parseRefs(`generate_${j.kind}`, j.values));
         s.model = j.body.model;
         await persist();
         inFlight += j.quote;
@@ -569,6 +616,7 @@ async function cmdBatch(file, values) {
           const job = await submit(`/v1/${j.kind}s/generations`, j.body, s.idempotency_key);
           s.job_id = job.id;
           s.status = job.status;
+          delete s.body;
           await persist();
           log(`${j.name}: submitted job ${job.id}`);
         } catch (e) {
@@ -594,7 +642,10 @@ async function cmdBatch(file, values) {
       if (!s.job_id) {
         s.status = "submit_error";
         // A definite rejection created no Job, so the next run may send a fresh request under a new key.
-        if (e instanceof APIError && e.status < 500 && e.code !== "YIR_RATE_LIMITED") delete s.idempotency_key;
+        if (e instanceof APIError && e.status < 500 && e.code !== "YIR_RATE_LIMITED") {
+          delete s.idempotency_key;
+          delete s.body;
+        }
       }
       s.error = e instanceof APIError ? { code: e.code, message: e.message, request_id: e.requestId } : { message: e.message };
       log(`${j.name}: ${e.code || ""} ${e.message}`);
@@ -604,7 +655,7 @@ async function cmdBatch(file, values) {
   });
   await saving;
 
-  const items = jobs.map(j => ({ name: j.name, ...state.jobs[j.name], request: undefined, idempotency_key: undefined }));
+  const items = jobs.map(j => ({ name: j.name, ...state.jobs[j.name], request: undefined, idempotency_key: undefined, body: undefined, quote: undefined }));
   const total = items.reduce((sum, s) => sum + Number(s.charged_usd || 0), 0);
   print({ out: resolve(outDir), charged_total_usd: total.toFixed(4), quoted_total_usd: quoted.toFixed(4), jobs: items });
   return items.every(s => s.status === "succeeded") ? 0 : items.some(s => s.status === "still_running") ? 3 : 1;

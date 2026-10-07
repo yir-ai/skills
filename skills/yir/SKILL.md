@@ -80,7 +80,7 @@ Routing: do not pass `--routing` unless the user asks; Yir picks the channel and
 
 ## What to expect
 
-- **Async jobs.** Images usually take tens of seconds; videos take minutes and sometimes longer. If the wait times out (exit code 3), the Job keeps running: resume with `job <id> --wait --download` instead of submitting again.
+- **Async jobs.** Images usually take tens of seconds; videos take minutes and sometimes longer. If the wait times out (exit code 3), the command is interrupted, or the submit failed with a network error, the Job keeps running: re-run the exact same command (same options and `--out`) and it resumes the same Job instead of creating another. `job <id> --wait --download` also works when you have the ID. Until the Job finishes, `<out>/.yir-pending/` holds the request; once it finishes, the same command asks for a new generation.
 - **Status** is one of `queued`, `running`, `delivering`, `succeeded`, `failed`, `cancelled`.
 - **Billing.** The charge follows the upstream channel that actually ran the Job, so the final `charged_usd` can differ from the quote. Yir may fail over to another channel; an attempt the upstream billed is charged even if it failed or was replaced. Use `--max-cost` to cap spending.
 - **Result links** are short-lived signed URLs; the script downloads them right away. Re-run `job <id> --download` to fetch again while the result is still available.
