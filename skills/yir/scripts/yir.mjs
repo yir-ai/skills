@@ -264,7 +264,7 @@ async function buildRequest(operation, values, params = parseParams(values.param
 
 function summarizeQuote(q) {
   return { model: q.model, operation: q.operation, input_mode: q.input_mode, parameters: q.parameters,
-    currency: q.currency, price: q.primary, official_price: q.official, supply: q.supply,
+    currency: q.currency, price: q.primary, expected_amount: q.expected_amount, official_price: q.official, supply: q.supply,
     parameter_notices: q.parameter_notices, expires_at: q.expires_at };
 }
 
@@ -582,7 +582,8 @@ async function cmdBatch(file, values) {
       j.body = await buildRequest(`generate_${j.kind}`, j.values, j.params);
       if (j.maxCost) j.body.max_cost = j.maxCost;
       const q = await api("POST", `/v1/${j.kind}s/quotes`, { body: j.body });
-      j.quote = Number(q.primary?.amount ?? NaN);
+      // expected_amount includes reference-input charges an output-only primary estimate leaves out.
+      j.quote = Number(q.expected_amount || q.primary?.amount || NaN);
       if (!q.supply?.available || Number.isNaN(j.quote)) throw new Error(`no channel can run this request now (${(q.supply?.issues || []).map(i => i.code || i).join(", ") || "unavailable"})`);
       quoted += j.quote;
       log(`${j.name}: ${j.body.model} quoted $${j.quote}`);
