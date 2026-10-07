@@ -17,7 +17,14 @@ Jobs are billed to your Yir wallet. Top up in the Console.
 
 ## Install
 
-Copy `skills/yir` into your agent's skills directory.
+Claude Code, as a plugin (updates with `/plugin marketplace update yir-ai`):
+
+```sh
+/plugin marketplace add yir-ai/skills
+/plugin install yir@yir-ai
+```
+
+Or copy `skills/yir` into your agent's skills directory.
 
 Claude Code (personal, or `.claude/skills/` inside a project):
 

@@ -1,0 +1,20 @@
+{
+  "name": "yir-ai",
+  "owner": {
+    "name": "Yir",
+    "url": "https://yir.ai"
+  },
+  "description": "Official Yir skills: generate and edit images and videos from coding agents through the Yir image & video API router.",
+  "plugins": [
+    {
+      "name": "yir",
+      "source": "./",
+      "description": "Generate and edit images and generate videos through Yir, one API key for GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more. Includes budgeted, resumable batches for page and article assets.",
+      "version": "0.2.1",
+      "homepage": "https://yir.ai/docs/integrations/agent-skill",
+      "repository": "https://github.com/yir-ai/skills",
+      "license": "MIT",
+      "tags": ["image-generation", "video-generation", "ai-api"]
+    }
+  ]
+}
