@@ -671,7 +671,7 @@ function hint(e) {
   if (e.code === "YIR_UNAUTHORIZED") return `Check YIR_API_KEY; create or copy an API Key in the Yir Console: ${CONSOLE_URL}`;
   if (e.code === "YIR_INSUFFICIENT_BALANCE" || e.action === "add_funds") return `Top up the wallet in the Yir Console: ${CONSOLE_URL}`;
   if (e.code === "YIR_SPEND_LIMIT_EXCEEDED") return `This API Key reached its monthly limit; raise it in the Yir Console: ${CONSOLE_URL}`;
-  if (e.code === "YIR_BUDGET_EXCEEDED") return "The quoted cost exceeds --max-cost; raise it or choose a cheaper model/spec.";
+  if (e.code === "YIR_BUDGET_EXCEEDED") return "The current price exceeds --max-cost (prices can change). Re-quote, show the user the new price, and raise --max-cost only if they accept it; otherwise choose a cheaper model/spec.";
   if (e.code === "YIR_MODEL_NOT_FOUND") return "Run `models` to list valid model IDs.";
   if (e.code === "YIR_INVALID_REQUEST") return "Run `model <id>` to check parameter names, values and reference roles.";
   if (e.code === "YIR_FIDELITY_EXCLUDED") return "No channel meets the requested routing fidelity; use {\"fidelity\":\"genuine\"} or another model.";

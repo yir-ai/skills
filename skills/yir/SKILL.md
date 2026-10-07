@@ -84,7 +84,7 @@ Routing: do not pass `--routing` unless the user asks; Yir picks the channel and
 
 - **Async jobs.** Images usually take tens of seconds; videos take minutes and sometimes longer. If the wait times out (exit code 3), the command is interrupted, or the submit failed with a network error, the Job keeps running: re-run the exact same command (same options and `--out`) and it resumes the same Job instead of creating another. `job <id> --wait --download` also works when you have the ID. Until the Job finishes, `<out>/.yir-pending/` holds the request; once it finishes, the same command asks for a new generation.
 - **Status** is one of `queued`, `running`, `delivering`, `succeeded`, `failed`, `cancelled`.
-- **Billing.** The charge follows the upstream channel that actually ran the Job, so the final `charged_usd` can differ from the quote. Yir may fail over to another channel; an attempt the upstream billed is charged even if it failed or was replaced. Use `--max-cost` to cap spending.
+- **Billing.** The charge follows the upstream channel that actually ran the Job, so the final `charged_usd` can differ from the quote. Yir may fail over to another channel; an attempt the upstream billed is charged even if it failed or was replaced. Use `--max-cost` to cap spending. Prices can change between runs (a channel goes offline, a routing default or catalog price changes), so re-quote before re-running a saved plan, and set `--max-cost` with headroom over the quote rather than equal to it.
 - **Result links** are short-lived signed URLs; the script downloads them right away. Re-run `job <id> --download` to fetch again while the result is still available.
 - **Input files** are uploaded temporarily for the Job; the script logs the `file_...` ID so it can be reused for a follow-up request.
 
@@ -94,7 +94,7 @@ Failures print `{"error": {code, message, action, retryable, request_id}, "hint"
 
 - `YIR_INSUFFICIENT_BALANCE` or action `add_funds`: ask the user to top up in the Yir Console at https://yir.ai. Do not retry.
 - `YIR_SPEND_LIMIT_EXCEEDED`: the API Key's monthly limit is reached; the user can raise it in the Console.
-- `YIR_BUDGET_EXCEEDED`: the cost exceeds `--max-cost`.
+- `YIR_BUDGET_EXCEEDED`: the current price exceeds `--max-cost`; the message names the lowest current estimate. Quote again and tell the user the old cap and the new price, then let them choose: raise `--max-cost`, or pick a cheaper model or spec. Do not raise the cap or relax `fidelity` on your own.
 - `YIR_INVALID_REQUEST`, `YIR_MODEL_NOT_FOUND`: re-check with `models` / `model <id>`.
 - `YIR_FIDELITY_EXCLUDED`: no channel meets the requested `fidelity`; use `genuine`, or another model.
 - `YIR_CONTENT_REJECTED`: the prompt or input was refused; ask the user to change it.
