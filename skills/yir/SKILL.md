@@ -78,7 +78,7 @@ Options: `-p key=value` (repeatable), `--image` (reference_image for image jobs,
 
 Routing: do not pass `--routing` unless the user asks; Yir picks the channel and fails over by itself. When asked, keys are `only` (list of providers), `variants`, `preference` (`cost` default, or `speed`) `fallback` (boolean) and `fidelity`, e.g. `--routing '{"preference":"speed"}'`.
 
-`fidelity` sets how faithful the channel must be to the official model: `genuine` (default) skips channels known to upscale or alter the output, `original` keeps only channels that return the model's native output, `any` applies no filter. Use `{"fidelity":"original"}` when the user says the results will be published or shown as what the model produces (showcases, landing pages, comparisons), and tell them it may cost more or leave fewer channels. If every channel is excluded, generation fails with `YIR_FIDELITY_EXCLUDED`; relax to `genuine`.
+`fidelity` sets how faithful the channel must be to the official model: `genuine` (the default unless the API Key's routing profile sets another) skips channels known to upscale or alter the output, `original` keeps only channels that return the model's native output, `any` applies no filter. Use `{"fidelity":"original"}` when the user says the results will be published or shown as what the model produces (showcases, landing pages, comparisons), and tell them it may cost more or leave fewer channels. If every channel is excluded, generation fails with `YIR_FIDELITY_EXCLUDED`; relax to `genuine`. Each delivered file also carries `fidelity.grade` (`original`, `app`, `equivalent`, `altered` or `unverified`), copied into the sidecar; before presenting a result as the model's own output, check that it is `original`.
 
 ## What to expect
 

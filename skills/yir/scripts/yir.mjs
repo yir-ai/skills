@@ -48,8 +48,9 @@ Generation options:
                             Local files are uploaded through the Files API first.
   --routing JSON            Optional routing override, e.g. '{"preference":"speed"}'.
                             Keys: only, variants, preference, fallback, fidelity. Default: let Yir route.
-                            fidelity: genuine (default), original (only native channels; for
-                            showcase or published assets) or any.
+                            fidelity: genuine (default unless your routing profile says
+                            otherwise), original (only native channels; for showcase or
+                            published assets) or any.
   --max-cost USD            Cap the Job's total charge (e.g. 0.20)
   --out DIR                 Result directory (default ./yir-output)
   --name STEM               Result file name without extension (default yir-<job id>)
@@ -333,6 +334,9 @@ async function writeSidecar(job, outDir, stem, paths, request) {
     final_provider: job.final_provider, charged_usd: job.billing?.total_charged_by_yir,
     files: paths.map(p => basename(p)), created_at: job.created_at, completed_at: job.completed_at,
   };
+  // Per-file grade from the gateway's C2PA and channel audit: whether this file is the model's own output.
+  const graded = (job.result?.files || []).map((f, i) => f.fidelity && paths[i] ? { file: basename(paths[i]), ...f.fidelity } : null).filter(Boolean);
+  if (graded.length) meta.fidelity = graded;
   await writeFile(resolve(join(outDir, `${stem}.json`)), `${JSON.stringify(meta, null, 2)}\n`);
 }
 
