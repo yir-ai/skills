@@ -76,7 +76,9 @@ node scripts/yir.mjs cancel <id>
 
 Options: `-p key=value` (repeatable), `--image` (reference_image for image jobs, first_frame for video jobs), `--ref role=src` (repeatable), `--max-cost USD` (caps the Job's total charge), `--out DIR`, `--name STEM`, `--no-wait`, `--timeout SEC` (default 600 image, 1800 video), `--routing JSON`.
 
-Routing: do not pass `--routing` unless the user asks; Yir picks the channel and fails over by itself. When asked, keys are `only` (list of providers), `variants`, `preference` (`cost` default, or `speed`) and `fallback` (boolean), e.g. `--routing '{"preference":"speed"}'`.
+Routing: do not pass `--routing` unless the user asks; Yir picks the channel and fails over by itself. When asked, keys are `only` (list of providers), `variants`, `preference` (`cost` default, or `speed`) `fallback` (boolean) and `fidelity`, e.g. `--routing '{"preference":"speed"}'`.
+
+`fidelity` sets how faithful the channel must be to the official model: `genuine` (default) skips channels known to upscale or alter the output, `original` keeps only channels that return the model's native output, `any` applies no filter. Use `{"fidelity":"original"}` when the user says the results will be published or shown as what the model produces (showcases, landing pages, comparisons), and tell them it may cost more or leave fewer channels. If every channel is excluded, generation fails with `YIR_FIDELITY_EXCLUDED`; relax to `genuine`.
 
 ## What to expect
 
@@ -94,6 +96,7 @@ Failures print `{"error": {code, message, action, retryable, request_id}, "hint"
 - `YIR_SPEND_LIMIT_EXCEEDED`: the API Key's monthly limit is reached; the user can raise it in the Console.
 - `YIR_BUDGET_EXCEEDED`: the cost exceeds `--max-cost`.
 - `YIR_INVALID_REQUEST`, `YIR_MODEL_NOT_FOUND`: re-check with `models` / `model <id>`.
+- `YIR_FIDELITY_EXCLUDED`: no channel meets the requested `fidelity`; use `genuine`, or another model.
 - `YIR_CONTENT_REJECTED`: the prompt or input was refused; ask the user to change it.
 - `YIR_NO_EXECUTABLE_ROUTE`, `YIR_TEMPORARILY_UNAVAILABLE`, `YIR_RATE_LIMITED`: try other parameters or another model, or retry later.
 - `YIR_EXECUTION_FAILED`, `YIR_OUTCOME_TIMEOUT`, `YIR_RESULT_DELIVERY_FAILED`: the Job failed after trying the available channels; retry once if `retryable` is true, otherwise report the code and `request_id`.

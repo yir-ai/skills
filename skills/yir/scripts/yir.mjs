@@ -6,7 +6,7 @@ import { readFile, writeFile, mkdir, stat, rm } from "node:fs/promises";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 
-const VERSION = "0.2.1";
+const VERSION = "0.3.0";
 const CONSOLE_URL = "https://yir.ai";
 const BASE_URL = (process.env.YIR_BASE_URL || "https://gateway.yir.ai").trim().replace(/\/+$/, "");
 const REQUEST_TIMEOUT_MS = 30000;
@@ -47,7 +47,9 @@ Generation options:
                             first_frame, last_frame, reference_video, reference_audio
                             Local files are uploaded through the Files API first.
   --routing JSON            Optional routing override, e.g. '{"preference":"speed"}'.
-                            Keys: only, variants, preference, fallback. Default: let Yir route.
+                            Keys: only, variants, preference, fallback, fidelity. Default: let Yir route.
+                            fidelity: genuine (default), original (only native channels; for
+                            showcase or published assets) or any.
   --max-cost USD            Cap the Job's total charge (e.g. 0.20)
   --out DIR                 Result directory (default ./yir-output)
   --name STEM               Result file name without extension (default yir-<job id>)
@@ -668,6 +670,7 @@ function hint(e) {
   if (e.code === "YIR_BUDGET_EXCEEDED") return "The quoted cost exceeds --max-cost; raise it or choose a cheaper model/spec.";
   if (e.code === "YIR_MODEL_NOT_FOUND") return "Run `models` to list valid model IDs.";
   if (e.code === "YIR_INVALID_REQUEST") return "Run `model <id>` to check parameter names, values and reference roles.";
+  if (e.code === "YIR_FIDELITY_EXCLUDED") return "No channel meets the requested routing fidelity; use {\"fidelity\":\"genuine\"} or another model.";
   if (e.code === "YIR_NO_EXECUTABLE_ROUTE") return "No channel can run this model/parameter combination now; try other parameters or another model.";
   if (e.action === "retry_later" || e.retryable) return "Retry later.";
   if (e.action === "contact_support") return `Contact Yir support via ${CONSOLE_URL} with the request_id.`;
