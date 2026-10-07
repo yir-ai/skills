@@ -1,6 +1,6 @@
 ---
 name: yir
-description: Generate and edit images and generate videos through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, compare or pick image/video models and prices, or check, download or cancel a Yir job by ID. Requires YIR_API_KEY.
+description: Generate and edit images and generate videos through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, produce a set of images or clips for a page, deck or article in one batch, compare or pick image/video models and prices, or check, download or cancel a Yir job by ID. Requires YIR_API_KEY.
 ---
 
 # Yir image and video jobs
@@ -19,6 +19,36 @@ It reads `YIR_API_KEY` from the environment. If it is missing or rejected (`YIR_
 2. **Check parameters and prices.** `node scripts/yir.mjs model <creator/model>` shows each parameter's allowed values and default, accepted reference roles, and listed prices per spec. Omitted required parameters are filled with the defaults.
 3. **Quote when cost matters** (video, high resolution, or when the user asks): `node scripts/yir.mjs quote image|video <same options as the job>`. It creates no Job and charges nothing. Check `supply.available` and `price.amount` (USD). Tell the user the price before an expensive job.
 4. **Submit.** The script polls until the Job is terminal, downloads results to `--out` (default `./yir-output`) and prints a JSON summary with local `files[].path`, `charged_usd` and `final_provider`. Show the user the local paths.
+
+Give results meaningful names with `--name` (e.g. `--name hero-desktop`). Every saved result gets a `<name>.json` sidecar with the prompt, parameters, references, channel, Job ID and charge, so the asset can be reproduced or credited later. Keep it next to the file.
+
+## Many assets at once (pages, decks, articles)
+
+When the user needs several images or clips, write a plan file and run it as one batch instead of calling `image`/`video` repeatedly:
+
+```json
+{
+  "defaults": { "type": "image", "model": "openai/gpt-image-2", "params": { "resolution": "2K", "aspect_ratio": "16:9" } },
+  "jobs": [
+    { "name": "hero", "prompt": "..." },
+    { "name": "feature-edit", "prompt": "...", "image": "./before.png" },
+    { "name": "hero-mobile", "prompt": "...", "params": { "aspect_ratio": "9:16" } },
+    { "name": "demo-clip", "type": "video", "model": "bytedance/seedance-1.5-pro", "prompt": "...", "refs": ["first_frame=./hero.png"], "params": { "duration": 5 } }
+  ]
+}
+```
+
+Each job takes `name` (required, unique, becomes the file name), `type`, `model`, `prompt`, `params` (merged over the defaults), `image`, `refs` (`role=path`), `routing` and `max_cost`. Local paths are relative to the plan file.
+
+```sh
+node scripts/yir.mjs batch plan.json --dry-run --out ./assets        # validate and quote every job; submits nothing
+node scripts/yir.mjs batch plan.json --max-total 2.00 --out ./assets # run, at most 3 jobs in flight (--concurrency)
+```
+
+1. Always `--dry-run` first. It checks every job against the model contract and current supply and reports all problems at once; fix the plan until it passes. Tell the user the quoted total and get approval when it is more than a few dollars.
+2. Run with `--max-total` set to the amount the user approved. Before each submit the script checks what earlier jobs actually charged plus what is in flight, and skips jobs that would pass the limit.
+3. Re-running the same command resumes: finished jobs are skipped, submitted jobs are waited on instead of resubmitted, and skipped or interrupted jobs are submitted. State lives in `<out>/.yir-batch.json`; do not delete it while jobs are running. Failed jobs stay failed unless you pass `--retry-failed`.
+4. Look at the results before using them. Regenerate a weak one by changing its prompt and name (or `--retry-failed` after a failure); a job that already succeeded is never resubmitted.
 
 ## Commands
 
@@ -44,7 +74,7 @@ node scripts/yir.mjs job <id> --wait --download     # wait, then save results
 node scripts/yir.mjs cancel <id>
 ```
 
-Options: `-p key=value` (repeatable), `--image` (reference_image for image jobs, first_frame for video jobs), `--ref role=src` (repeatable), `--max-cost USD` (caps the Job's total charge), `--out DIR`, `--no-wait`, `--timeout SEC` (default 600 image, 1800 video), `--routing JSON`.
+Options: `-p key=value` (repeatable), `--image` (reference_image for image jobs, first_frame for video jobs), `--ref role=src` (repeatable), `--max-cost USD` (caps the Job's total charge), `--out DIR`, `--name STEM`, `--no-wait`, `--timeout SEC` (default 600 image, 1800 video), `--routing JSON`.
 
 Routing: do not pass `--routing` unless the user asks; Yir picks the channel and fails over by itself. When asked, keys are `only` (list of providers), `variants`, `preference` (`cost` default, or `speed`) and `fallback` (boolean), e.g. `--routing '{"preference":"speed"}'`.
 

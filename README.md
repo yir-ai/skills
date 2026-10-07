@@ -2,7 +2,7 @@
 
 Official [Agent Skills](https://agentskills.io) for [Yir](https://yir.ai), the image & video API router.
 
-The `yir` skill lets coding agents such as Claude Code and Codex generate images, edit images from local files, and generate videos through one Yir API key. It lists models and prices, quotes a request, submits the job, waits for the result and saves the files locally.
+The `yir` skill lets coding agents such as Claude Code and Codex generate images, edit images from local files, and generate videos through one Yir API key. It lists models and prices, quotes a request, submits the job, waits for the result and saves the files locally. For pages, decks and articles that need many assets, it runs a whole plan as one budgeted, resumable batch.
 
 ## Requirements
 
@@ -42,6 +42,7 @@ Ask your agent in plain language, for example:
 - "Use Yir to turn ./logo.png into a watercolor version."
 - "Make a 5-second video from ./first-frame.png."
 - "Check Yir job 2106985418292465664 and download the result."
+- "Make the hero, three feature images and a 5-second demo clip for this landing page with Yir, under $2."
 
 You can also run the script directly:
 
@@ -52,9 +53,11 @@ node skills/yir/scripts/yir.mjs quote image -m openai/gpt-image-2 --prompt "a li
 node skills/yir/scripts/yir.mjs image -m openai/gpt-image-2 --prompt "a lighthouse at dusk" -p aspect_ratio=16:9
 node skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "waves at night" -p duration=4
 node skills/yir/scripts/yir.mjs job <id> --wait --download
+node skills/yir/scripts/yir.mjs batch plan.json --dry-run --out ./assets
+node skills/yir/scripts/yir.mjs batch plan.json --max-total 2.00 --out ./assets
 ```
 
-Results are saved to `./yir-output` by default (`--out` to change). Run `--help` for all options.
+Results are saved to `./yir-output` by default (`--out` to change), each with a `.json` sidecar recording the prompt, parameters, channel, Job ID and charge. See [SKILL.md](skills/yir/SKILL.md) for the batch plan format. Run `--help` for all options.
 
 ## Links
 
