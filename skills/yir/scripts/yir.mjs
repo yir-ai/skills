@@ -592,7 +592,8 @@ async function cmdBatch(file, values) {
     try {
       j.body = await buildRequest(`generate_${j.kind}`, j.values, j.params);
       if (j.maxCost) j.body.max_cost = j.maxCost;
-      const q = await api("POST", `/v1/${j.kind}s/quotes`, { body: j.body });
+      const { max_cost, ...quoteBody } = j.body; // Quotes do not accept the generation-only spending cap.
+      const q = await api("POST", `/v1/${j.kind}s/quotes`, { body: quoteBody });
       // expected_amount includes reference-input charges an output-only primary estimate leaves out.
       j.quote = Number(q.expected_amount || q.primary?.amount || NaN);
       if (!q.supply?.available || Number.isNaN(j.quote)) throw new Error(`no channel can run this request now (${(q.supply?.issues || []).map(i => i.code || i).join(", ") || "unavailable"})`);

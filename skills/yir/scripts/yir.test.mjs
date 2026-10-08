@@ -12,7 +12,7 @@ async function fixture(t, jobs, state = {jobs:{}}) {
   const dir = await mkdtemp(join(tmpdir(), 'yir-test-'));
   t.after(() => rm(dir, {recursive:true, force:true}));
   const plan = join(dir,'plan.json');
-  await writeFile(plan, JSON.stringify({defaults:{type:'image',model:'test/image',prompt:'test'},jobs:jobs.map(name=>({name}))}));
+  await writeFile(plan, JSON.stringify({defaults:{type:'image',model:'test/image',prompt:'test',max_cost:'0.05'},jobs:jobs.map(name=>({name}))}));
   await writeFile(join(dir,'.yir-batch.json'),JSON.stringify(state));
   const mock = join(dir,'mock.mjs');
   await writeFile(mock, `
@@ -21,7 +21,7 @@ async function fixture(t, jobs, state = {jobs:{}}) {
     const p = new URL(url).pathname;
     let data;
     if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[]}]};
-    else if(p.endsWith('/quotes')) data={expected_amount:'0.05',supply:{available:true}};
+    else if(p.endsWith('/quotes')) { if ('max_cost' in JSON.parse(opts.body)) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',message:'max_cost is not allowed in this request.'}}),{status:400}); data={expected_amount:'0.05',supply:{available:true}}; }
     else if(p.endsWith('/generations')) {
       await appendFile(process.env.CALLS,JSON.stringify(JSON.parse(opts.body))+'\\n');
       data={id:'2',status:'queued'};
@@ -34,9 +34,9 @@ async function fixture(t, jobs, state = {jobs:{}}) {
     else throw Error('unexpected '+p);
     return new Response(JSON.stringify(data));
   };`);
-  return {dir, async run(extra=[], env={}) {
+  return {dir, async run(extra=[], env={}, maxTotal="0.10") {
     let result;
-    try { result=await exec(process.execPath,['--import',pathToFileURL(mock).href,script,'batch',plan,'--out',dir,'--max-total','0.10',...extra],{env:{...process.env,YIR_API_KEY:'mock',YIR_BASE_URL:'https://mock',CALLS:join(dir,'calls'),...env}});result.code=0; }
+    try { result=await exec(process.execPath,['--import',pathToFileURL(mock).href,script,'batch',plan,'--out',dir,...(maxTotal===null?[]:['--max-total',maxTotal]),...extra],{env:{...process.env,YIR_API_KEY:'mock',YIR_BASE_URL:'https://mock',CALLS:join(dir,'calls'),...env}});result.code=0; }
     catch(e){result=e;}
     const calls=await readFile(join(dir,'calls'),'utf8').catch(()=> '');
     return {...result, state:JSON.parse(await readFile(join(dir,'.yir-batch.json'),'utf8')), calls:calls.trim()?calls.trim().split('\n').map(JSON.parse):[]};
@@ -92,4 +92,14 @@ test('capped uncertain replay includes prior spend and keeps original request',a
 test('uncertain submit with missing quote fails closed',async t=>{
  const f=await fixture(t,['old'],{jobs:{old:{idempotency_key:'original',body:{model:'test/image',input:{prompt:'test'},parameters:{}}}}});
  const r=await f.run();assert.equal(r.calls.length,0);assert.equal(r.code,2);assert.match(r.stderr,/no valid quote/);
+});
+
+test('omitted job cap uses the quote as the generation cap',async t=>{
+ const f=await fixture(t,['asset']);const path=join(f.dir,'plan.json');const plan=JSON.parse(await readFile(path,'utf8'));
+ delete plan.defaults.max_cost;await writeFile(path,JSON.stringify(plan));
+ const r=await f.run();assert.equal(r.code,0);assert.equal(r.calls[0].max_cost,'0.050000');
+});
+test('explicit job cap survives quoting without a batch total',async t=>{
+ const f=await fixture(t,['asset']);const r=await f.run([],{},null);
+ assert.equal(r.code,0);assert.equal(r.calls[0].max_cost,'0.05');
 });
