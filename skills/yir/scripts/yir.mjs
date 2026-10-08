@@ -2,11 +2,11 @@
 // Yir Standard API command line for agents. Zero dependencies, Node.js >= 18.
 // Auth: YIR_API_KEY (required). Optional YIR_BASE_URL (default https://gateway.yir.ai).
 import { parseArgs } from "node:util";
-import { readFile, writeFile, mkdir, stat, rm } from "node:fs/promises";
+import { readFile, writeFile, mkdir, stat, rm, rename } from "node:fs/promises";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 
-const VERSION = "0.3.0";
+const VERSION = "0.3.1";
 const CONSOLE_URL = "https://yir.ai";
 const BASE_URL = (process.env.YIR_BASE_URL || "https://gateway.yir.ai").trim().replace(/\/+$/, "");
 const REQUEST_TIMEOUT_MS = 30000;
@@ -527,7 +527,10 @@ async function loadPlan(file) {
 }
 
 async function readState(path) {
-  try { return JSON.parse(await readFile(path, "utf8")); } catch { return { jobs: {} }; }
+  try { return JSON.parse(await readFile(path, "utf8")); } catch (e) {
+    if (e.code === "ENOENT") return { jobs: {} };
+    throw new UsageError(`cannot read batch state ${path}: ${e.message}; restore it before retrying`);
+  }
 }
 
 async function pool(items, size, fn) {
@@ -540,7 +543,7 @@ async function pool(items, size, fn) {
 async function cmdBatch(file, values) {
   if (!file) throw new UsageError("usage: batch <plan.json> [--max-total USD] [--concurrency N] [--dry-run]");
   const maxTotal = values["max-total"] === undefined ? undefined : Number(values["max-total"]);
-  if (maxTotal !== undefined && !(maxTotal > 0)) throw new UsageError("--max-total must be a positive USD amount");
+  if (maxTotal !== undefined && (!Number.isFinite(maxTotal) || !(maxTotal > 0))) throw new UsageError("--max-total must be a positive USD amount");
   const concurrency = Number(values.concurrency || 3);
   if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 10) throw new UsageError("--concurrency must be 1-10");
   const jobs = await loadPlan(file);
@@ -551,14 +554,18 @@ async function cmdBatch(file, values) {
   await mkdir(outDir, { recursive: true });
   // Writes are serialized so concurrent workers never interleave a partial state file.
   let saving = Promise.resolve();
-  const persist = () => (saving = saving.then(() => writeFile(statePath, `${JSON.stringify(state, null, 2)}\n`)));
+  const persist = () => (saving = saving.then(async () => {
+    await writeFile(`${statePath}.tmp`, `${JSON.stringify(state, null, 2)}\n`);
+    await rename(`${statePath}.tmp`, statePath);
+  }));
 
   const todo = [];
   for (const j of jobs) {
     const s = state.jobs[j.name];
-    if (s?.status === "succeeded") { log(`${j.name}: done in an earlier run (job ${s.job_id})`); continue; }
+    if (s?.status === "succeeded" && s.files?.length && !s.error) { log(`${j.name}: done in an earlier run (job ${s.job_id})`); continue; }
     if (s?.status === "failed" || s?.status === "cancelled") {
       if (!values["retry-failed"]) { log(`${j.name}: ${s.status} in an earlier run (job ${s.job_id}); pass --retry-failed to submit again`); continue; }
+      state.prior_charged_usd = Number(state.prior_charged_usd || 0) + Number(s.charged_usd || 0);
       delete state.jobs[j.name];
     }
     todo.push(j);
@@ -573,7 +580,11 @@ async function cmdBatch(file, values) {
     // An earlier submit whose outcome is unknown is re-sent byte for byte under its key, so it cannot become a second Job.
     if (prior?.idempotency_key && prior.body) {
       j.body = prior.body;
-      j.quote = prior.quote;
+      j.quote = Number(prior.quote);
+      if (!Number.isFinite(j.quote) || j.quote < 0) {
+        problems.push(`${j.name}: saved unconfirmed submit has no valid quote; restore its state before retrying`);
+        continue;
+      }
       quoted += j.quote;
       log(`${j.name}: re-sending the unconfirmed submit from an earlier run`);
       continue;
@@ -599,18 +610,31 @@ async function cmdBatch(file, values) {
   if (values["dry-run"]) return print({ dry_run: true, quoted_total_usd: quoted.toFixed(4), jobs: todo.map(j => ({ name: j.name, model: j.values.model, quoted_usd: j.quote, resume_job_id: state.jobs[j.name]?.job_id })) }), 0;
   if (maxTotal !== undefined && quoted > maxTotal) throw new UsageError(`quoted total $${quoted.toFixed(4)} exceeds --max-total ${maxTotal}; drop jobs or raise the limit`);
 
-  // The final charge follows the channel that actually ran and can differ from the quote, so spending is
-  // re-checked before every submit against what earlier jobs really charged plus what is still in flight.
-  let charged = Object.values(state.jobs).reduce((sum, s) => sum + Number(s.charged_usd || 0), 0);
+  // Settle old/uncertain submits first: legacy jobs may have no server-side cap.
+  const chargedTotal = () => Number(state.prior_charged_usd || 0) + Object.values(state.jobs).reduce((sum, s) => sum + Number(s.charged_usd || 0), 0);
+  const outstanding = s => (s.job_id || s.idempotency_key) && !TERMINAL.has(s.status);
   let inFlight = 0;
-  await pool(todo, concurrency, async j => {
+  const run = async j => {
     const s = state.jobs[j.name] ||= {};
+    let reserved = 0;
     try {
       if (!s.job_id) {
-        if (maxTotal !== undefined && charged + inFlight + j.quote > maxTotal) {
-          log(`${j.name}: skipped, would pass --max-total (charged $${charged.toFixed(4)}, in flight $${inFlight.toFixed(4)})`);
-          s.status = "skipped_budget";
-          return;
+        const recovering = Boolean(s.idempotency_key && s.body);
+        if (maxTotal !== undefined) {
+          // Reserve synchronously, before the first await. Each new Job also gets a server cap.
+          if (recovering && j.body.max_cost === undefined) {
+            throw new UsageError("Cannot safely replay an unconfirmed submit without its original max_cost under --max-total; keep its state and resolve the original request before continuing");
+          }
+          const cap = Number(j.body.max_cost ?? j.quote);
+          if (!Number.isFinite(cap) || cap < 0) throw new UsageError("invalid job budget");
+          if (chargedTotal() + inFlight + cap > maxTotal + 1e-9) {
+            log(`${j.name}: skipped, budget is spent or earlier jobs remain unresolved`);
+            if (!recovering) s.status = "skipped_budget";
+            return;
+          }
+          if (!recovering) j.body.max_cost = cap.toFixed(6);
+          reserved = cap;
+          inFlight += reserved;
         }
         s.idempotency_key ||= randomUUID();
         s.body = j.body;
@@ -618,54 +642,64 @@ async function cmdBatch(file, values) {
         s.request ||= requestRecord(j.body, parseRefs(`generate_${j.kind}`, j.values));
         s.model = j.body.model;
         await persist();
-        inFlight += j.quote;
-        try {
-          const job = await submit(`/v1/${j.kind}s/generations`, j.body, s.idempotency_key);
-          s.job_id = job.id;
-          s.status = job.status;
-          delete s.body;
-          await persist();
-          log(`${j.name}: submitted job ${job.id}`);
-        } catch (e) {
-          inFlight -= j.quote;
-          throw e;
-        }
+        const job = await submit(`/v1/${j.kind}s/generations`, j.body, s.idempotency_key);
+        s.job_id = job.id;
+        s.status = job.status;
+        delete s.body;
+        await persist();
+        log(`${j.name}: submitted job ${job.id}`);
       } else {
         log(`${j.name}: resuming job ${s.job_id}`);
       }
       const timeout = Number(values.timeout || (j.kind === "video" ? 1800 : 600));
       const done = await waitForJob(s.job_id, timeout);
-      if (j.quote !== undefined) inFlight -= j.quote;
       if (!done) { s.status = "still_running"; log(`${j.name}: still running after ${timeout}s; re-run the batch to resume`); return; }
       s.status = done.status;
       s.final_provider = done.final_provider;
       s.charged_usd = done.billing?.total_charged_by_yir;
-      charged += Number(s.charged_usd || 0);
-      if (done.status === "succeeded") s.files = (await save(done, outDir, j.name, s.request)).map(p => basename(p));
-      else s.error = done.error;
+      inFlight -= reserved;
+      reserved = 0;
+      if (done.status === "succeeded") {
+        s.download_status = "pending";
+        const paths = await save(done, outDir, j.name, s.request);
+        if (!paths.length) throw new Error("Job succeeded but no result files are available to download");
+        s.files = paths.map(p => basename(p));
+        s.download_status = "succeeded";
+        delete s.error;
+      } else s.error = done.error;
       log(`${j.name}: ${done.status} via ${done.final_provider || "-"}, charged $${s.charged_usd ?? "0"}`);
     } catch (e) {
-      // A lost response leaves the idempotency key in the state file: the next run re-sends it and gets the same Job.
       if (!s.job_id) {
         s.status = "submit_error";
-        // A definite rejection created no Job, so the next run may send a fresh request under a new key.
         if (e instanceof APIError && e.status < 500 && e.code !== "YIR_RATE_LIMITED") {
           delete s.idempotency_key;
           delete s.body;
+          inFlight -= reserved;
+          reserved = 0;
         }
       }
+      if (s.status === "succeeded") s.download_status = "failed";
       s.error = e instanceof APIError ? { code: e.code, message: e.message, request_id: e.requestId } : { message: e.message };
       log(`${j.name}: ${e.code || ""} ${e.message}`);
     } finally {
       await persist();
     }
-  });
+  };
+  const recovering = todo.filter(j => state.jobs[j.name]?.job_id || state.jobs[j.name]?.idempotency_key);
+  const fresh = todo.filter(j => !recovering.includes(j));
+  await pool(recovering, concurrency, run);
+  // Never admit fresh spending while an older request has an unknown final bill.
+  const unresolved = Object.values(state.jobs).some(outstanding);
+  if (maxTotal !== undefined && unresolved) {
+    for (const j of fresh) state.jobs[j.name] = { status: "skipped_budget" };
+    await persist();
+  } else await pool(fresh, concurrency, run);
   await saving;
 
   const items = jobs.map(j => ({ name: j.name, ...state.jobs[j.name], request: undefined, idempotency_key: undefined, body: undefined, quote: undefined }));
-  const total = items.reduce((sum, s) => sum + Number(s.charged_usd || 0), 0);
+  const total = chargedTotal();
   print({ out: resolve(outDir), charged_total_usd: total.toFixed(4), quoted_total_usd: quoted.toFixed(4), jobs: items });
-  return items.every(s => s.status === "succeeded") ? 0 : items.some(s => s.status === "still_running") ? 3 : 1;
+  return items.every(s => s.status === "succeeded" && s.files?.length && !s.error) ? 0 : items.some(s => s.status === "still_running") ? 3 : 1;
 }
 
 function hint(e) {

@@ -46,8 +46,8 @@ node scripts/yir.mjs batch plan.json --max-total 2.00 --out ./assets # run, at m
 ```
 
 1. Always `--dry-run` first. It checks every job against the model contract and current supply and reports all problems at once; fix the plan until it passes. Tell the user the quoted total and get approval when it is more than a few dollars.
-2. Run with `--max-total` set to the amount the user approved. Before each submit the script checks what earlier jobs actually charged plus what is in flight, and skips jobs that would pass the limit.
-3. Re-running the same command resumes: finished jobs are skipped, submitted jobs are waited on instead of resubmitted, and skipped or interrupted jobs are submitted. State lives in `<out>/.yir-batch.json`; do not delete it while jobs are running. Failed jobs stay failed unless you pass `--retry-failed`.
+2. Run with `--max-total` set to the amount the user approved. The script settles earlier submitted jobs before admitting new ones, counts charges from failed attempts and retries, and reserves each new job’s cap before submission. With `--max-total`, each new job gets a server-side `max_cost`: its explicit `max_cost`, or its current quote if omitted. Set an explicit per-job `max_cost` for headroom; the sum of reserved caps and prior charges must fit the total. Unresolved older jobs block new submissions.
+3. Re-running the same command resumes: finished jobs are skipped, submitted jobs are waited on instead of resubmitted, and skipped or interrupted jobs are submitted. State lives in `<out>/.yir-batch.json`; do not delete it while jobs are running. Failed jobs stay failed unless you pass `--retry-failed`. Download failures exit nonzero; re-running retries the download of the same Job without generating or charging again. Keep one batch process per output directory.
 4. Look at the results before using them. Regenerate a weak one by changing its prompt and name (or `--retry-failed` after a failure); a job that already succeeded is never resubmitted.
 
 ## Commands
