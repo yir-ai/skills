@@ -76,9 +76,11 @@ node scripts/yir.mjs cancel <id>
 
 Options: `-p key=value` (repeatable), `--image` (reference_image for image jobs, first_frame for video jobs), `--ref role=src` (repeatable), `--max-cost USD` (caps the Job's total charge), `--out DIR`, `--name STEM`, `--no-wait`, `--timeout SEC` (default 600 image, 1800 video), `--routing JSON`.
 
-Routing: do not pass `--routing` unless the user asks; Yir picks the channel and fails over by itself. When asked, keys are `only` (list of providers), `variants`, `preference` (`cost` default, or `speed`) `fallback` (boolean) and `fidelity`, e.g. `--routing '{"preference":"speed"}'`.
+Routing: do not pass `--routing` unless the user asks; Yir picks the channel and fails over by itself. When asked, keys are `only` (list of providers), `variants`, `preference` (`cost` default, or `speed`), `fallback` (boolean), `fidelity` and `accelerate` (boolean), e.g. `--routing '{"preference":"speed"}'`.
 
 `fidelity` sets how faithful the channel must be to the official model: `genuine` (the default unless the API Key's routing profile sets another) skips channels known to upscale or alter the output, `original` keeps only channels that return the model's native output, `any` applies no filter. Use `{"fidelity":"original"}` when the user says the results will be published or shown as what the model produces (showcases, landing pages, comparisons), and tell them it may cost more or leave fewer channels. If every channel is excluded, generation fails with `YIR_FIDELITY_EXCLUDED`; relax to `genuine`. Each delivered file also carries `fidelity.grade` (`original`, `app`, `equivalent`, `altered` or `unverified`), copied into the sidecar; before presenting a result as the model's own output, check that it is `original`.
+
+`accelerate` is on by default: when an image attempt stalls well past its channel's usual completion time and another eligible channel remains, Yir cuts it off and retries there (if the stalled upstream still bills, that cost is charged and counts toward `--max-cost`). Leave it alone; pass `{"accelerate":false}` only when the user must stay on one slow channel.
 
 ## What to expect
 

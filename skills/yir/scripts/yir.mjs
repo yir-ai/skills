@@ -6,7 +6,7 @@ import { readFile, writeFile, mkdir, stat, rm, rename } from "node:fs/promises";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 
-const VERSION = "0.3.1";
+const VERSION = "0.3.2";
 const CONSOLE_URL = "https://yir.ai";
 const BASE_URL = (process.env.YIR_BASE_URL || "https://gateway.yir.ai").trim().replace(/\/+$/, "");
 const REQUEST_TIMEOUT_MS = 30000;
@@ -47,10 +47,13 @@ Generation options:
                             first_frame, last_frame, reference_video, reference_audio
                             Local files are uploaded through the Files API first.
   --routing JSON            Optional routing override, e.g. '{"preference":"speed"}'.
-                            Keys: only, variants, preference, fallback, fidelity. Default: let Yir route.
+                            Keys: only, variants, preference, fallback, fidelity, accelerate.
+                            Default: let Yir route.
                             fidelity: genuine (default unless your routing profile says
                             otherwise), original (only native channels; for showcase or
                             published assets) or any.
+                            accelerate: true (default) moves a stalled image attempt to the
+                            next channel; false waits for the first channel.
   --max-cost USD            Cap the Job's total charge (e.g. 0.20)
   --out DIR                 Result directory (default ./yir-output)
   --name STEM               Result file name without extension (default yir-<job id>)
