@@ -72,7 +72,7 @@ Environment: YIR_API_KEY (create one in the Console at ${CONSOLE_URL}), YIR_BASE
 
 class UsageError extends Error {}
 class APIError extends Error {
-  constructor(status, body) {
+  constructor(status, body, retryAfter) {
     const err = body && typeof body === "object" && body.error && typeof body.error === "object" ? body.error : {};
     super(err.message || (typeof body === "string" && body ? body.slice(0, 500) : `HTTP ${status}`));
     this.status = status;
@@ -80,6 +80,9 @@ class APIError extends Error {
     this.retryable = err.retryable ?? false;
     this.action = err.action;
     this.requestId = body && typeof body === "object" ? body.request_id : undefined;
+    // Retry-After of a 429 YIR_RATE_LIMITED (per-API-key requests per minute), in ms.
+    const seconds = Number.parseInt(retryAfter ?? "", 10);
+    this.retryAfterMs = seconds > 0 ? Math.min(seconds, 60) * 1000 : undefined;
   }
 }
 
@@ -105,7 +108,7 @@ async function api(method, path, { body, headers = {}, holdMs = 0 } = {}) {
   const text = await res.text();
   let data = text;
   try { data = JSON.parse(text); } catch { /* keep text */ }
-  if (!res.ok) throw new APIError(res.status, data);
+  if (!res.ok) throw new APIError(res.status, data, res.headers.get("retry-after"));
   if (typeof data !== "object" || data === null) throw new Error(`invalid response from ${method} ${path}`);
   return data;
 }
@@ -119,7 +122,7 @@ async function submit(path, body, key = randomUUID()) {
       const transient = !(e instanceof APIError) || e.status >= 500 || e.code === "YIR_RATE_LIMITED";
       if (!transient || attempt >= 3) throw e;
       log(`submit attempt ${attempt} failed (${e.code || e.message}); retrying with the same idempotency key`);
-      await sleep(2000 * attempt);
+      await sleep(Math.max(2000 * attempt, e.retryAfterMs ?? 0));
     }
   }
 }
@@ -295,7 +298,7 @@ async function waitForJob(id, timeoutSec) {
     } catch (e) {
       if (e instanceof APIError && !e.retryable && e.status < 500) throw e;
       log(`status query failed (${e.code || e.message}); retrying`);
-      await sleep(5000);
+      await sleep(Math.min(e.retryAfterMs ?? 5000, Math.max(0, remaining)));
       continue;
     }
     if (status.status !== last) {

@@ -26,6 +26,7 @@ async function fixture(t, jobs, state = {jobs:{}}) {
       await appendFile(process.env.CALLS,JSON.stringify(JSON.parse(opts.body))+'\\n');
       data={id:'2',status:'queued'};
     } else if(p.endsWith('/status')) {
+      if(process.env.RATE_LIMIT_STATUS==='1' && !globalThis.limited) { globalThis.limited=true; return new Response(JSON.stringify({error:{code:'YIR_RATE_LIMITED',retryable:true}}),{status:429,headers:{'retry-after':'1'}}); }
       if(process.env.FAIL_STATUS==='1') return new Response(JSON.stringify({error:{code:'YIR_UNAUTHORIZED',retryable:false}}),{status:401});
       data={status:'succeeded'};
     }
@@ -102,4 +103,9 @@ test('omitted job cap uses the quote as the generation cap',async t=>{
 test('explicit job cap survives quoting without a batch total',async t=>{
  const f=await fixture(t,['asset']);const r=await f.run([],{},null);
  assert.equal(r.code,0);assert.equal(r.calls[0].max_cost,'0.05');
+});
+test('status polling waits out a 429 per Retry-After',async t=>{
+ const f=await fixture(t,['a']);const started=Date.now();const r=await f.run([],{RATE_LIMIT_STATUS:'1'});
+ assert.equal(r.code,0);assert.match(r.stderr,/YIR_RATE_LIMITED/);assert.equal(r.state.jobs.a.status,'succeeded');
+ const elapsed=Date.now()-started;assert.ok(elapsed>=1000&&elapsed<5000,`elapsed ${elapsed}ms`);
 });
