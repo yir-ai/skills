@@ -50,11 +50,13 @@ test('resumed in-flight bill prevents new spend beyond total',async t=>{
 test('pending terminal billing keeps the reserved cap across runs',async t=>{
  const f=await fixture(t,['a','b']);
  const first=await f.run(['--concurrency','1'],{PENDING_BILL:'1'},'0.10');
- assert.equal(first.calls.length,1);assert.equal(first.state.jobs.a.billing_status,'pending');
+ assert.equal(first.calls.length,2);assert.equal(first.state.jobs.a.billing_status,'pending');
+ const path=join(f.dir,'plan.json');const plan=JSON.parse(await readFile(path,'utf8'));
+ plan.jobs.push({name:'c'});await writeFile(path,JSON.stringify(plan));
  const pending=await f.run([],{PENDING_BILL:'1'},'0.10');
- assert.equal(pending.calls.length,1);assert.equal(pending.state.jobs.b.status,'skipped_budget');
- const settled=await f.run([],{},'0.10');
- assert.equal(settled.calls.length,2);assert.equal(settled.state.jobs.a.billing_status,'settled');
+ assert.equal(pending.calls.length,2);assert.equal(pending.state.jobs.c.status,'skipped_budget');
+ const settled=await f.run([],{},'0.15');
+ assert.equal(settled.calls.length,3);assert.equal(settled.state.jobs.a.billing_status,'settled');
 });
 test('concurrent admissions reserve caps before awaits',async t=>{
  const f=await fixture(t,['a','b'],{jobs:{prior:{status:'failed',charged_usd:'0.05'}}});

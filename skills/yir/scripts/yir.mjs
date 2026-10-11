@@ -677,6 +677,12 @@ async function cmdBatch(file, values) {
       if (s.billing_status === "settled") {
         inFlight -= reserved;
         reserved = 0;
+      } else if (reserved > 0) {
+        // Already charged money is counted by chargedTotal; reserve only the
+        // uncharged remainder of the original cap, never the cap a second time.
+        const remaining = Math.max(0, reserved - Number(s.charged_usd || 0));
+        inFlight -= reserved - remaining;
+        reserved = remaining;
       }
       if (done.status === "succeeded") {
         s.download_status = "pending";
