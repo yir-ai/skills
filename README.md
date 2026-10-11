@@ -15,6 +15,8 @@ export YIR_API_KEY="..."
 
 Jobs are billed to your Yir wallet. Top up in the Console.
 
+For account analytics and settings, create a separate **Account Key** in Console → API Keys and set `YIR_ACCOUNT_API_KEY`. The bundled `skills/yir/scripts/account.mjs` uses only the public **Account API**, never the internal Admin API. Account Keys default to read-only; settings changes require a key with settings permission and an explicit `--write` flag. Gateway generation continues to use `YIR_API_KEY`.
+
 ## Install
 
 Claude Code, as a plugin (updates with `/plugin marketplace update yir-ai`):

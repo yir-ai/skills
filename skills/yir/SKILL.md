@@ -13,6 +13,17 @@ node scripts/yir.mjs --help
 
 It reads `YIR_API_KEY` from the environment. If it is missing or rejected (`YIR_UNAUTHORIZED`), tell the user to create an API Key in the Yir Console at https://yir.ai and export it as `YIR_API_KEY`. Never print or write the key.
 
+## Account API: analytics and settings
+
+Use **Gateway Key** (`YIR_API_KEY`, `yir_sk_`) for generation commands. Use a separate **Account Key** (`YIR_ACCOUNT_API_KEY`, `yir_ak_`) for account commands. Create it in Console → API Keys → Account Key. Default permission is read only; settings writes need the explicit settings permission. The public Account API is not Yir's internal Admin API. Never use browser cookies or try internal administrator paths.
+
+- Query: `node scripts/account.mjs analytics get --query '{"group_by":"model"}'`; specify `from`, `to` and `timezone` for comparisons. Explain returned coverage, missing samples and content rejection separately from execution failures.
+- Inspect: `node scripts/account.mjs logs list --query '{"status":"failed","page_limit":20}'`; `node scripts/account.mjs routing list`; `node scripts/account.mjs webhooks list`.
+- Change settings only when requested by the user. Read the target first and use its exact ID. Write the intended patch to a local JSON file, then run `node scripts/account.mjs routing update --id ID --json patch.json --write`. The flag is an execution safeguard, not a substitute for user authorization.
+- Other supported resources: `alerts get|update` and `low-balance-alert get|update`. Webhooks support `list|get|create|update|delete|deliveries`. Routing supports `list|create|update|archive`.
+- The account script does not retry writes. If a create result is uncertain, list resources before retrying. Never automatically raise budgets, create/reveal/rotate/revoke keys, change identity or initiate payments; these remain Console sign-in operations.
+- Account data may be private. Summarize the requested findings; do not publish raw logs or keys. `YIR_ACCOUNT_BASE_URL` overrides only the Account API endpoint; gateway environment variables are not used.
+
 ## Workflow
 
 1. **Pick a model.** `node scripts/yir.mjs models --type image` (or `--type video`) lists model IDs and input modes (`text`, `image`, `reference`). If the user named a model, use its ID as listed (`creator/model`).
