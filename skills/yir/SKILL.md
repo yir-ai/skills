@@ -17,6 +17,7 @@ It reads `YIR_API_KEY` from the environment. If it is missing or rejected (`YIR_
 
 1. **Pick a model.** `node scripts/yir.mjs models --type image` (or `--type video`) lists model IDs and input modes (`text`, `image`, `reference`). If the user named a model, use its ID as listed (`creator/model`).
 2. **Check parameters and prices.** `node scripts/yir.mjs model <creator/model>` shows each parameter's allowed values and default, accepted reference roles, and listed prices per spec. Omitted required parameters are filled with the defaults.
+   For images, keep the lowest resolution (usually the default `1K`): it is enough for web pages, articles, chat and drafts, and 2K/4K often cost 2–5× more. Go higher only when the user asks for it; if you think the use needs it (print, large displays, heavy cropping), quote it and confirm the price with the user first.
 3. **Quote when cost matters** (video, high resolution, or when the user asks): `node scripts/yir.mjs quote image|video <same options as the job>`. It creates no Job and charges nothing. Check `supply.available` and `expected_amount` (USD; it includes reference-image input charges, fall back to `price.amount` when absent). Tell the user the price before an expensive job.
 4. **Submit.** The script polls until the Job is terminal, downloads results to `--out` (default `./yir-output`) and prints a JSON summary with local `files[].path`, `charged_usd` and `final_provider`. Show the user the local paths.
 
@@ -28,7 +29,7 @@ When the user needs several images or clips, write a plan file and run it as one
 
 ```json
 {
-  "defaults": { "type": "image", "model": "openai/gpt-image-2", "params": { "resolution": "2K", "aspect_ratio": "16:9" } },
+  "defaults": { "type": "image", "model": "openai/gpt-image-2", "params": { "resolution": "1K", "aspect_ratio": "16:9" } },
   "jobs": [
     { "name": "hero", "prompt": "..." },
     { "name": "feature-edit", "prompt": "...", "image": "./before.png" },
@@ -100,5 +101,6 @@ Failures print `{"error": {code, message, action, retryable, request_id}, "hint"
 - `YIR_INVALID_REQUEST`, `YIR_MODEL_NOT_FOUND`: re-check with `models` / `model <id>`.
 - `YIR_FIDELITY_EXCLUDED`: no channel meets the requested `fidelity`; use `genuine`, or another model.
 - `YIR_CONTENT_REJECTED`: the prompt or input was refused; ask the user to change it.
+- `YIR_INPUT_REJECTED`: the provider rejected the parameters or input files; `error.provider_error.message` says why (for example a reference video below the pixel minimum). Fix the input and submit again; do not retry unchanged.
 - `YIR_NO_EXECUTABLE_ROUTE`, `YIR_TEMPORARILY_UNAVAILABLE`, `YIR_RATE_LIMITED`: try other parameters or another model, or retry later.
 - `YIR_EXECUTION_FAILED`, `YIR_OUTCOME_TIMEOUT`, `YIR_RESULT_DELIVERY_FAILED`: the Job failed after trying the available channels; retry once if `retryable` is true, otherwise report the code and `request_id`.
