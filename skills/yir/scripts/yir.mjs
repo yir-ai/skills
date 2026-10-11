@@ -588,6 +588,7 @@ async function cmdBatch(file, values) {
 
   // Quotes are free; they price the plan before anything is submitted. Jobs already submitted are only resumed.
   let quoted = 0;
+  let unknownQuotes = 0;
   const problems = [];
   for (const j of todo) {
     const prior = state.jobs[j.name];
@@ -595,8 +596,13 @@ async function cmdBatch(file, values) {
     // An earlier submit whose outcome is unknown is re-sent byte for byte under its key, so it cannot become a second Job.
     if (prior?.idempotency_key && prior.body) {
       j.body = prior.body;
-      j.quote = Number(prior.quote);
-      if (!Number.isFinite(j.quote) || j.quote < 0) {
+      j.quote = prior.quote == null ? null : Number(prior.quote);
+      if (j.quote === null || !Number.isFinite(j.quote) || j.quote < 0) {
+        j.quote = null;
+        if (maxTotal === undefined || prior.body.max_cost !== undefined) {
+          unknownQuotes++;
+          continue;
+        }
         problems.push(`${j.name}: saved unconfirmed submit has no valid quote; restore its state before retrying`);
         continue;
       }
@@ -610,10 +616,18 @@ async function cmdBatch(file, values) {
       const { max_cost, ...quoteBody } = j.body; // Quotes do not accept the generation-only spending cap.
       const q = await api("POST", `/v1/${j.kind}s/quotes`, { body: quoteBody });
       // expected_amount includes reference-input charges an output-only primary estimate leaves out.
-      j.quote = Number(q.expected_amount || q.primary?.amount || NaN);
-      if (!q.supply?.available || Number.isNaN(j.quote)) throw new Error(`no channel can run this request now (${(q.supply?.issues || []).map(i => i.code || i).join(", ") || "unavailable"})`);
-      quoted += j.quote;
-      log(`${j.name}: ${j.body.model} quoted $${j.quote}`);
+      const amount = q.expected_amount ?? q.primary?.amount;
+      j.quote = amount == null ? null : Number(amount);
+      if (!q.supply?.available) throw new Error(`no channel can run this request now (${(q.supply?.issues || []).map(i => i.code || i).join(", ") || "unavailable"})`);
+      if (j.quote === null || !Number.isFinite(j.quote) || j.quote < 0) {
+        j.quote = null;
+        if (maxTotal !== undefined && j.body.max_cost === undefined) throw new UsageError("price is unknown; set this job's max_cost to allocate --max-total, or omit the batch budget for actual settlement");
+        unknownQuotes++;
+        log(`${j.name}: ${j.body.model} price pending; final charge follows actual settlement`);
+      } else {
+        quoted += j.quote;
+        log(`${j.name}: ${j.body.model} quoted $${j.quote}`);
+      }
     } catch (e) {
       problems.push(`${j.name}: ${e.code ? `${e.code} ` : ""}${e.message}`);
     }
@@ -622,8 +636,8 @@ async function cmdBatch(file, values) {
   if (problems.length) {
     throw new UsageError(`plan has ${problems.length} job(s) that cannot run as written:\n  ${problems.join("\n  ")}\nCheck parameters with \`model <id>\` or pick another model.`);
   }
-  log(`plan: ${todo.length} job(s) to run, quoted total $${quoted.toFixed(4)}${maxTotal ? ` (limit $${maxTotal})` : ""}`);
-  if (values["dry-run"]) return print({ dry_run: true, quoted_total_usd: quoted.toFixed(4), jobs: todo.map(j => ({ name: j.name, model: j.values.model, quoted_usd: j.quote, resume_job_id: state.jobs[j.name]?.job_id })) }), 0;
+  log(`plan: ${todo.length} job(s) to run, quoted total ${unknownQuotes ? "pending" : `$${quoted.toFixed(4)}`}${maxTotal ? ` (limit $${maxTotal})` : ""}`);
+  if (values["dry-run"]) return print({ dry_run: true, quoted_total_usd: unknownQuotes ? null : quoted.toFixed(4), jobs: todo.map(j => ({ name: j.name, model: j.values.model, quoted_usd: j.quote, resume_job_id: state.jobs[j.name]?.job_id })) }), 0;
   if (maxTotal !== undefined && quoted > maxTotal) throw new UsageError(`quoted total $${quoted.toFixed(4)} exceeds --max-total ${maxTotal}; drop jobs or raise the limit`);
 
   // Settle old/uncertain submits first: legacy jobs may have no server-side cap.
@@ -723,7 +737,7 @@ async function cmdBatch(file, values) {
 
   const items = jobs.map(j => ({ name: j.name, ...state.jobs[j.name], request: undefined, idempotency_key: undefined, body: undefined, quote: undefined }));
   const total = chargedTotal();
-  print({ out: resolve(outDir), charged_total_usd: total.toFixed(4), quoted_total_usd: quoted.toFixed(4), jobs: items });
+  print({ out: resolve(outDir), charged_total_usd: total.toFixed(4), quoted_total_usd: unknownQuotes ? null : quoted.toFixed(4), jobs: items });
   return items.every(s => s.status === "succeeded" && s.files?.length && !s.error) ? 0 : items.some(s => s.status === "still_running") ? 3 : 1;
 }
 

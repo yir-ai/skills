@@ -21,7 +21,7 @@ async function fixture(t, jobs, state = {jobs:{}}) {
     const p = new URL(url).pathname;
     let data;
     if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[]}]};
-    else if(p.endsWith('/quotes')) { if ('max_cost' in JSON.parse(opts.body)) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',message:'max_cost is not allowed in this request.'}}),{status:400}); data={expected_amount:'0.05',supply:{available:true}}; }
+    else if(p.endsWith('/quotes')) { if ('max_cost' in JSON.parse(opts.body)) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',message:'max_cost is not allowed in this request.'}}),{status:400}); data=process.env.UNKNOWN_QUOTE==='1'?{primary:{amount:null},supply:{available:true}}:{expected_amount:'0.05',supply:{available:true}}; }
     else if(p.endsWith('/generations')) {
       await appendFile(process.env.CALLS,JSON.stringify(JSON.parse(opts.body))+'\\n');
       data={id:'2',status:'queued'};
@@ -114,6 +114,28 @@ test('omitted job cap uses the quote as the generation cap',async t=>{
 test('explicit job cap survives quoting without a batch total',async t=>{
  const f=await fixture(t,['asset']);const r=await f.run([],{},null);
  assert.equal(r.code,0);assert.equal(r.calls[0].max_cost,'0.05');
+});
+
+test('unknown price can submit without a budget and is never reported as zero',async t=>{
+ const f=await fixture(t,['asset']);const path=join(f.dir,'plan.json');const plan=JSON.parse(await readFile(path,'utf8'));
+ delete plan.defaults.max_cost;await writeFile(path,JSON.stringify(plan));
+ const r=await f.run([],{UNKNOWN_QUOTE:'1'},null);
+ assert.equal(r.code,0);assert.equal(r.calls.length,1);assert.equal(r.calls[0].max_cost,undefined);
+ assert.equal(JSON.parse(r.stdout).quoted_total_usd,null);
+});
+
+test('unknown price needs an explicit allocation under a total budget',async t=>{
+ const f=await fixture(t,['asset']);const path=join(f.dir,'plan.json');const plan=JSON.parse(await readFile(path,'utf8'));
+ delete plan.defaults.max_cost;await writeFile(path,JSON.stringify(plan));
+ const r=await f.run([],{UNKNOWN_QUOTE:'1'});
+ assert.equal(r.calls.length,0);assert.match(r.stderr,/price is unknown/);
+});
+
+test('uncertain uncapped submit can replay without its quote when no budget is requested',async t=>{
+ const body={model:'test/image',input:{type:'text',prompt:'test'},parameters:{}};
+ const f=await fixture(t,['old'],{jobs:{old:{idempotency_key:'original',body}}});
+ const r=await f.run([],{},null);
+ assert.equal(r.code,0);assert.deepEqual(r.calls,[body]);
 });
 test('status polling waits out a 429 per Retry-After',async t=>{
  const f=await fixture(t,['a']);const started=Date.now();const r=await f.run([],{RATE_LIMIT_STATUS:'1'});
