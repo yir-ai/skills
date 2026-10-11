@@ -337,7 +337,7 @@ async function writeSidecar(job, outDir, stem, paths, request) {
   const meta = {
     job_id: job.id, status: job.status, model: job.model,
     ...(request ? { prompt: request.input.prompt, parameters: request.parameters, references: request.references, routing: request.routing } : {}),
-    final_provider: job.final_provider, charged_usd: job.billing?.total_charged_by_yir,
+    final_provider: job.final_provider, charged_usd: job.billing?.total_charged_by_yir, billing_status: job.billing?.status ?? "unknown",
     files: paths.map(p => basename(p)), created_at: job.created_at, completed_at: job.completed_at,
   };
   // Per-file grade from the gateway's C2PA and channel audit: whether this file is the model's own output.
@@ -565,11 +565,20 @@ async function cmdBatch(file, values) {
     await rename(`${statePath}.tmp`, statePath);
   }));
 
+  // Refresh delayed bills before discarding a failed run or admitting new spend.
+  for (const s of Object.values(state.jobs)) {
+    if (!s.job_id || !TERMINAL.has(s.status) || s.billing_status === "settled") continue;
+    const current = await api("GET", `/v1/jobs/${s.job_id}`);
+    s.billing_status = current.billing?.status ?? "unknown";
+    s.charged_usd = current.billing?.total_charged_by_yir;
+  }
+  await persist();
   const todo = [];
   for (const j of jobs) {
     const s = state.jobs[j.name];
     if (s?.status === "succeeded" && s.files?.length && !s.error) { log(`${j.name}: done in an earlier run (job ${s.job_id})`); continue; }
     if (s?.status === "failed" || s?.status === "cancelled") {
+      if (s.job_id && s.billing_status !== "settled") { log(`${j.name}: billing is not settled; retry after reconciliation`); continue; }
       if (!values["retry-failed"]) { log(`${j.name}: ${s.status} in an earlier run (job ${s.job_id}); pass --retry-failed to submit again`); continue; }
       state.prior_charged_usd = Number(state.prior_charged_usd || 0) + Number(s.charged_usd || 0);
       delete state.jobs[j.name];
@@ -619,7 +628,7 @@ async function cmdBatch(file, values) {
 
   // Settle old/uncertain submits first: legacy jobs may have no server-side cap.
   const chargedTotal = () => Number(state.prior_charged_usd || 0) + Object.values(state.jobs).reduce((sum, s) => sum + Number(s.charged_usd || 0), 0);
-  const outstanding = s => (s.job_id || s.idempotency_key) && !TERMINAL.has(s.status);
+  const outstanding = s => (s.job_id || s.idempotency_key) && (!TERMINAL.has(s.status) || (s.job_id && s.billing_status !== "settled"));
   let inFlight = 0;
   const run = async j => {
     const s = state.jobs[j.name] ||= {};
@@ -664,8 +673,11 @@ async function cmdBatch(file, values) {
       s.status = done.status;
       s.final_provider = done.final_provider;
       s.charged_usd = done.billing?.total_charged_by_yir;
-      inFlight -= reserved;
-      reserved = 0;
+      s.billing_status = done.billing?.status ?? "unknown";
+      if (s.billing_status === "settled") {
+        inFlight -= reserved;
+        reserved = 0;
+      }
       if (done.status === "succeeded") {
         s.download_status = "pending";
         const paths = await save(done, outDir, j.name, s.request);

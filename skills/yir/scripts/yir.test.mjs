@@ -30,7 +30,7 @@ async function fixture(t, jobs, state = {jobs:{}}) {
       if(process.env.FAIL_STATUS==='1') return new Response(JSON.stringify({error:{code:'YIR_UNAUTHORIZED',retryable:false}}),{status:401});
       data={status:'succeeded'};
     }
-    else if(p.startsWith('/v1/jobs/')) data={id:p.split('/').at(-1),status:'succeeded',billing:{total_charged_by_yir:p.endsWith('/1')?'0.08':'0.05'},result:{availability:'available',files:[{url:'https://mock/asset',media_type:'image/png'}]}};
+    else if(p.startsWith('/v1/jobs/')) data={id:p.split('/').at(-1),status:'succeeded',billing:{status:process.env.PENDING_BILL==='1'?'pending':'settled',total_charged_by_yir:p.endsWith('/1')?'0.08':'0.05'},result:{availability:'available',files:[{url:'https://mock/asset',media_type:'image/png'}]}};
     else if(p==='/asset') return new Response('image',{status:process.env.FAIL_DOWNLOAD==='1'?503:200});
     else throw Error('unexpected '+p);
     return new Response(JSON.stringify(data));
@@ -46,6 +46,15 @@ async function fixture(t, jobs, state = {jobs:{}}) {
 test('resumed in-flight bill prevents new spend beyond total',async t=>{
  const f=await fixture(t,['old','new'],{jobs:{old:{job_id:'1',status:'running',quote:.08}}});
  const r=await f.run();assert.equal(r.calls.length,0);assert.equal(r.state.jobs.new.status,'skipped_budget');
+});
+test('pending terminal billing keeps the reserved cap across runs',async t=>{
+ const f=await fixture(t,['a','b']);
+ const first=await f.run(['--concurrency','1'],{PENDING_BILL:'1'},'0.10');
+ assert.equal(first.calls.length,1);assert.equal(first.state.jobs.a.billing_status,'pending');
+ const pending=await f.run([],{PENDING_BILL:'1'},'0.10');
+ assert.equal(pending.calls.length,1);assert.equal(pending.state.jobs.b.status,'skipped_budget');
+ const settled=await f.run([],{},'0.10');
+ assert.equal(settled.calls.length,2);assert.equal(settled.state.jobs.a.billing_status,'settled');
 });
 test('concurrent admissions reserve caps before awaits',async t=>{
  const f=await fixture(t,['a','b'],{jobs:{prior:{status:'failed',charged_usd:'0.05'}}});
