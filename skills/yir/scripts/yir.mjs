@@ -40,7 +40,7 @@ Generation options:
   --model, -m ID            Model ID from \`models\` (e.g. openai/gpt-image-2)
   --prompt P                Prompt text
   --param, -p key=value     Model parameter, repeatable (resolution=1K, aspect_ratio=16:9,
-                            duration=5, generate_audio=false). Missing required parameters
+                            duration=5, generate_audio=false, size=1024x1024). Missing required parameters
                             are filled with the model's defaults.
   --image PATH|URL          Shorthand reference: reference_image for image, first_frame for video
   --ref role=PATH|URL       Reference with explicit role, repeatable. Roles: reference_image,

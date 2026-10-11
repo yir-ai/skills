@@ -20,7 +20,7 @@ async function fixture(t, jobs, state = {jobs:{}}) {
   globalThis.fetch = async (url, opts={}) => {
     const p = new URL(url).pathname;
     let data;
-    if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[]}]};
+    if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[{name:'size',type:'string',required:false,values:['3136x1344']}]}]};
     else if(p.endsWith('/quotes')) { if ('max_cost' in JSON.parse(opts.body)) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',message:'max_cost is not allowed in this request.'}}),{status:400}); data=process.env.UNKNOWN_QUOTE==='1'?{primary:{amount:null},supply:{available:true}}:{expected_amount:'0.05',supply:{available:true}}; }
     else if(p.endsWith('/generations')) {
       await appendFile(process.env.CALLS,JSON.stringify(JSON.parse(opts.body))+'\\n');
@@ -141,4 +141,11 @@ test('status polling waits out a 429 per Retry-After',async t=>{
  const f=await fixture(t,['a']);const started=Date.now();const r=await f.run([],{RATE_LIMIT_STATUS:'1'});
  assert.equal(r.code,0);assert.match(r.stderr,/YIR_RATE_LIMITED/);assert.equal(r.state.jobs.a.status,'succeeded');
  const elapsed=Date.now()-started;assert.ok(elapsed>=1000&&elapsed<5000,`elapsed ${elapsed}ms`);
+});
+
+
+test('exact pixels pass through without synthesized resolution defaults', async t => {
+ const f=await fixture(t,['exact']); const path=join(f.dir,'plan.json'); const plan=JSON.parse(await readFile(path,'utf8'));
+ plan.jobs[0].params={size:'3136x1344'}; await writeFile(path,JSON.stringify(plan));
+ const r=await f.run(); assert.equal(r.code,0); assert.deepEqual(r.calls[0].parameters,{size:'3136x1344'});
 });
