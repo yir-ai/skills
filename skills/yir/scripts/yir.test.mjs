@@ -20,7 +20,7 @@ async function fixture(t, jobs, state = {jobs:{}}) {
   globalThis.fetch = async (url, opts={}) => {
     const p = new URL(url).pathname;
     let data;
-    if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[{name:'size',type:'string',required:false,values:['3136x1344']}]}]};
+    if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[{name:'size',type:'string',required:false,values:['3136x1344']}]},{operation:'generate_video',input_modes:['text'],parameters:[{name:'fps',type:'integer',required:false,values:[24]}]}]};
     else if(p.endsWith('/quotes')) { if ('max_cost' in JSON.parse(opts.body)) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',message:'max_cost is not allowed in this request.'}}),{status:400}); data=process.env.UNKNOWN_QUOTE==='1'?{primary:{amount:null},supply:{available:true}}:{expected_amount:'0.05',supply:{available:true}}; }
     else if(p.endsWith('/generations')) {
       await appendFile(process.env.CALLS,JSON.stringify(JSON.parse(opts.body))+'\\n');
@@ -148,4 +148,11 @@ test('exact pixels pass through without synthesized resolution defaults', async 
  const f=await fixture(t,['exact']); const path=join(f.dir,'plan.json'); const plan=JSON.parse(await readFile(path,'utf8'));
  plan.jobs[0].params={size:'3136x1344'}; await writeFile(path,JSON.stringify(plan));
  const r=await f.run(); assert.equal(r.code,0); assert.deepEqual(r.calls[0].parameters,{size:'3136x1344'});
+});
+
+test('native video fps passes through without a synthesized default', async t => {
+ const f=await fixture(t,['explicit','omitted']); const path=join(f.dir,'plan.json'); const plan=JSON.parse(await readFile(path,'utf8'));
+ plan.defaults.type='video'; plan.defaults.model='test/video'; plan.jobs[0].params={fps:24}; await writeFile(path,JSON.stringify(plan));
+ const r=await f.run(['--concurrency','1']); assert.equal(r.code,0); assert.equal(r.calls.length,2);
+ assert.deepEqual(r.calls[0].parameters,{fps:24}); assert.deepEqual(r.calls[1].parameters,{});
 });
