@@ -256,9 +256,9 @@ async function withDefaults(model, operation, mode, params) {
 
 async function buildRequest(operation, values, params = parseParams(values.param)) {
   if (!values.model) throw new UsageError("--model is required (see `models`)");
-  if (!values.prompt || !values.prompt.trim()) throw new UsageError("--prompt is required");
   const refs = parseRefs(operation, values);
   const mode = inputMode(operation, refs);
+  if ((!values.prompt || !values.prompt.trim()) && (operation !== "generate_video" || mode !== "image")) throw new UsageError("--prompt is required");
   const parameters = await withDefaults(values.model, operation, mode, params);
   const input = mode === "text" ? { type: "text", prompt: values.prompt } : { type: mode, prompt: values.prompt, references: await resolveRefs(refs) };
   const body = { model: values.model, input, parameters };
