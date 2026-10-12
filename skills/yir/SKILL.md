@@ -83,6 +83,9 @@ node scripts/yir.mjs video -m <model> --prompt "..." --ref first_frame=./start.p
 # Reference video (roles reference_image / reference_video / reference_audio)
 node scripts/yir.mjs video -m <model> --prompt "..." --ref reference_image=./character.png
 
+# Edit a video (Seedance 2.5): output length and aspect follow the input video
+node scripts/yir.mjs video -m bytedance/seedance-2.5 --prompt "replace the man with a woman in a red coat" --ref reference_video=./clip.mp4 -p duration=auto -p aspect_ratio=auto
+
 # Existing jobs
 node scripts/yir.mjs job <id>                       # status, billing, result links
 node scripts/yir.mjs job <id> --wait --download     # wait, then save results

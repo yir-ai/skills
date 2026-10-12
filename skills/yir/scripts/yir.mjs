@@ -403,7 +403,7 @@ async function cmdModel(id, values) {
     }
     out.push("  parameters:");
     for (const p of op.parameters || []) {
-      const range = p.values ? `values ${JSON.stringify(p.values)}` : `${p.minimum ?? ""}..${p.maximum ?? ""}`;
+      const range = (p.values ? `values ${JSON.stringify(p.values)}` : `${p.minimum ?? ""}..${p.maximum ?? ""}`) + (p.string_values ? ` or ${JSON.stringify(p.string_values)}` : "");
       out.push(`    ${p.name} (${p.type}${p.required ? ", required" : ""}) ${range}${p.default !== undefined ? ` default ${JSON.stringify(p.default)}` : ""}`);
     }
   }
