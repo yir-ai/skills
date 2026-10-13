@@ -6,7 +6,7 @@ import { readFile, writeFile, mkdir, stat, rm, rename } from "node:fs/promises";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 
-const VERSION = "0.3.2";
+const VERSION = "0.4.0";
 const CONSOLE_URL = "https://yir.ai";
 const BASE_URL = (process.env.YIR_BASE_URL || "https://gateway.yir.ai").trim().replace(/\/+$/, "");
 const REQUEST_TIMEOUT_MS = 30000;
@@ -20,18 +20,24 @@ const MEDIA_TYPES = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image
 const EXTENSIONS = { "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp", "image/gif": ".gif",
   "video/mp4": ".mp4", "video/webm": ".webm", "video/quicktime": ".mov", "audio/mpeg": ".mp3", "audio/wav": ".wav" };
 const REF_ROLES = new Set(["reference_image", "first_frame", "last_frame", "reference_video", "reference_audio"]);
+const KINDS = ["image", "video", "music"];
+const DEFAULT_TIMEOUT = { image: 600, video: 1800, music: 900 };
+// Music endpoints are /v1/music/...; image and video are /v1/images/... and /v1/videos/...
+const endpoint = kind => `/v1/${kind === "music" ? "music" : `${kind}s`}`;
 
-const HELP = `yir ${VERSION} - Yir image and video jobs (https://gateway.yir.ai Standard API)
+const HELP = `yir ${VERSION} - Yir image, video and music jobs (https://gateway.yir.ai Standard API)
 
 Usage:
-  node yir.mjs models [--type image|video]          List model IDs, input modes and labels
+  node yir.mjs models [--type image|video|music]    List model IDs, input modes and labels
   node yir.mjs model <creator/model>                Parameters, defaults and per-spec prices
-  node yir.mjs quote <image|video> [generation options]
+  node yir.mjs quote <image|video|music> [generation options]
                                                     Price and supply check; creates no Job, charges nothing
   node yir.mjs image  --model M --prompt P [options] Text-to-image, or image edit with --image
   node yir.mjs video  --model M --prompt P [options] Text/image/reference-to-video
+  node yir.mjs music  --model M --prompt P [--lyrics-file F | -p instrumental=true | -p lyrics_optimizer=true]
+                                                    One song or instrumental track (mp3)
   node yir.mjs batch <plan.json> [--max-total USD] [--concurrency N] [--dry-run]
-                                                    Run many image/video jobs from a plan; re-run resumes
+                                                    Run many image/video/music jobs from a plan; re-run resumes
   node yir.mjs job <id> [--wait] [--download] [--out DIR]
                                                     Job status, billing and result links
   node yir.mjs cancel <id>                          Request cancellation
@@ -46,6 +52,10 @@ Generation options:
   --ref role=PATH|URL       Reference with explicit role, repeatable. Roles: reference_image,
                             first_frame, last_frame, reference_video, reference_audio
                             Local files are uploaded through the Files API first.
+  --lyrics TEXT             Music: song lyrics (lines separated by newlines, [Verse]/[Chorus] tags allowed)
+  --lyrics-file PATH        Music: read the lyrics from a UTF-8 text file
+                            Vocal music needs lyrics unless lyrics_optimizer=true writes them;
+                            instrumental=true takes no lyrics.
   --routing JSON            Optional routing override, e.g. '{"preference":"speed"}'.
                             Keys: only, variants, preference, fallback, fidelity, accelerate.
                             Default: let Yir route.
@@ -58,7 +68,7 @@ Generation options:
   --out DIR                 Result directory (default ./yir-output)
   --name STEM               Result file name without extension (default yir-<job id>)
   --no-wait                 Submit and print the Job ID without polling
-  --timeout SEC             Max wait (default 600 image, 1800 video)
+  --timeout SEC             Max wait (default 600 image, 1800 video, 900 music)
   --json                    models/model: print raw JSON
 
 Batch options:
@@ -67,8 +77,9 @@ Batch options:
   --dry-run                 Quote every job and print the total; submits nothing
   --retry-failed            Re-submit jobs that failed in an earlier run (default: keep the failure)
 
-Output: quote/image/video/job/cancel/batch print one JSON object on stdout; progress goes to stderr.
-Each saved result gets a <name>.json sidecar with model, prompt, parameters, channel, Job ID and charge.
+Output: quote/image/video/music/job/cancel/batch print one JSON object on stdout; progress goes to stderr.
+Each saved result gets a <name>.json sidecar with model, prompt, parameters, channel, Job ID and charge
+(plus lyrics and measured duration for music).
 Exit codes: 0 ok, 1 API or job failure, 2 usage error, 3 wait timed out (job still running).
 Environment: YIR_API_KEY (create one in the Console at ${CONSOLE_URL}), YIR_BASE_URL (optional).
 `;
@@ -156,6 +167,7 @@ function parseParams(list = []) {
 
 function parseRefs(operation, values) {
   const refs = [];
+  if (operation === "generate_music" && (values.image?.length || values.ref?.length)) throw new UsageError("music takes no --image or --ref; describe the music in --prompt");
   for (const src of values.image || []) refs.push({ role: operation === "generate_image" ? "reference_image" : "first_frame", src });
   for (const item of values.ref || []) {
     const i = item.indexOf("=");
@@ -167,7 +179,7 @@ function parseRefs(operation, values) {
 }
 
 function inputMode(operation, refs) {
-  if (!refs.length) return "text";
+  if (!refs.length || operation === "generate_music") return "text";
   if (operation === "generate_image") return "image";
   const framed = refs.some(r => r.role === "first_frame" || r.role === "last_frame");
   const referenced = refs.some(r => r.role.startsWith("reference_"));
@@ -237,7 +249,7 @@ async function getContract(model) {
 async function withDefaults(model, operation, mode, params) {
   const contract = await getContract(model);
   const ops = (contract.operations || []).filter(o => o.operation === operation);
-  if (!ops.length) throw new UsageError(`${model} does not support ${operation === "generate_image" ? "image" : "video"} generation; run \`models\``);
+  if (!ops.length) throw new UsageError(`${model} does not support ${operation.replace("generate_", "")} generation; run \`models\``);
   const op = ops.find(o => (o.input_modes || []).includes(mode));
   if (!op) throw new UsageError(`${model} ${operation} supports input modes ${ops.flatMap(o => o.input_modes).join(", ")}, not "${mode}"`);
   const rules = new Map((op.parameters || []).map(p => [p.name, p]));
@@ -260,12 +272,34 @@ async function buildRequest(operation, values, params = parseParams(values.param
   const mode = inputMode(operation, refs);
   if ((!values.prompt || !values.prompt.trim()) && (operation !== "generate_video" || mode !== "image")) throw new UsageError("--prompt is required");
   const parameters = await withDefaults(values.model, operation, mode, params);
-  const input = mode === "text" ? { type: "text", prompt: values.prompt } : { type: mode, prompt: values.prompt, references: await resolveRefs(refs) };
+  const lyrics = await readLyrics(operation, values, parameters);
+  const input = mode === "text" ? { type: "text", prompt: values.prompt, ...(lyrics ? { lyrics } : {}) } : { type: mode, prompt: values.prompt, references: await resolveRefs(refs) };
   const body = { model: values.model, input, parameters };
   if (values.routing) {
     try { body.routing = JSON.parse(values.routing); } catch { throw new UsageError("--routing must be valid JSON"); }
   }
   return body;
+}
+
+// Music lyrics rules, checked before any request: instrumental takes no lyrics, lyrics_optimizer writes them,
+// otherwise vocal music needs them.
+async function readLyrics(operation, values, parameters) {
+  if (values.lyrics !== undefined && values["lyrics-file"] !== undefined) throw new UsageError("use --lyrics or --lyrics-file, not both");
+  let lyrics = values.lyrics;
+  if (values["lyrics-file"] !== undefined) {
+    try { lyrics = await readFile(values["lyrics-file"], "utf8"); } catch (e) { throw new UsageError(`cannot read lyrics file ${values["lyrics-file"]}: ${e.message}`); }
+  }
+  if (operation !== "generate_music") {
+    if (lyrics !== undefined) throw new UsageError("--lyrics/--lyrics-file apply to music only");
+    return undefined;
+  }
+  lyrics = lyrics?.replace(/\r\n?/g, "\n").trim() || undefined;
+  if (parameters.instrumental === true && (lyrics || parameters.lyrics_optimizer === true)) throw new UsageError("instrumental=true takes no lyrics and no lyrics_optimizer");
+  if (parameters.lyrics_optimizer === true && lyrics) throw new UsageError("lyrics_optimizer=true writes the lyrics from the prompt; omit --lyrics");
+  if (!lyrics && parameters.instrumental !== true && parameters.lyrics_optimizer !== true) {
+    throw new UsageError("vocal music needs --lyrics or --lyrics-file; or pass -p lyrics_optimizer=true to have lyrics written (extra charge), or -p instrumental=true for no vocals");
+  }
+  return lyrics;
 }
 
 function summarizeQuote(q) {
@@ -327,7 +361,7 @@ async function download(job, outDir, stem = `yir-${job.id}`) {
     const path = resolve(join(outDir, `${stem}${files.length > 1 ? `-${i + 1}` : ""}${ext}`));
     await writeFile(path, Buffer.from(await res.arrayBuffer()));
     paths.push(path);
-    log(`saved ${path}`);
+    log(`saved ${path}${f.duration_ms ? ` (${(f.duration_ms / 1000).toFixed(1)}s)` : ""}`);
   }
   return paths;
 }
@@ -336,13 +370,16 @@ async function download(job, outDir, stem = `yir-${job.id}`) {
 async function writeSidecar(job, outDir, stem, paths, request) {
   const meta = {
     job_id: job.id, status: job.status, model: job.model,
-    ...(request ? { prompt: request.input.prompt, parameters: request.parameters, references: request.references, routing: request.routing } : {}),
+    ...(request ? { prompt: request.input.prompt, ...(request.input.lyrics ? { lyrics: request.input.lyrics } : {}), parameters: request.parameters, references: request.references, routing: request.routing } : {}),
     final_provider: job.final_provider, charged_usd: job.billing?.total_charged_by_yir, billing_status: job.billing?.status ?? "unknown",
     files: paths.map(p => basename(p)), created_at: job.created_at, completed_at: job.completed_at,
   };
   // Per-file grade from the gateway's C2PA and channel audit: whether this file is the model's own output.
   const graded = (job.result?.files || []).map((f, i) => f.fidelity && paths[i] ? { file: basename(paths[i]), ...f.fidelity } : null).filter(Boolean);
   if (graded.length) meta.fidelity = graded;
+  // Measured playback length of audio results (music has no duration control).
+  const timed = (job.result?.files || []).map((f, i) => f.duration_ms && paths[i] ? { file: basename(paths[i]), duration_ms: f.duration_ms } : null).filter(Boolean);
+  if (timed.length) meta.durations = timed;
   await writeFile(resolve(join(outDir, `${stem}.json`)), `${JSON.stringify(meta, null, 2)}\n`);
 }
 
@@ -367,7 +404,7 @@ function stemOf(values, job) {
 
 // What the sidecar records about the request: local reference paths as given, never uploaded file IDs only.
 function requestRecord(body, refs) {
-  return { input: { prompt: body.input.prompt }, parameters: body.parameters, routing: body.routing,
+  return { input: { prompt: body.input.prompt, ...(body.input.lyrics ? { lyrics: body.input.lyrics } : {}) }, parameters: body.parameters, routing: body.routing,
     references: refs.length ? refs.map(r => ({ role: r.role, src: r.src })) : undefined };
 }
 
@@ -375,7 +412,7 @@ async function cmdModels(values) {
   const data = await api("GET", "/v1/models?include=parameters");
   if (values.json) return print(data), 0;
   const want = values.type ? `generate_${values.type}` : null;
-  if (values.type && !["image", "video"].includes(values.type)) throw new UsageError("--type must be image or video");
+  if (values.type && !KINDS.includes(values.type)) throw new UsageError("--type must be image, video or music");
   for (const m of data.models || []) {
     const ops = (m.operations || []).filter(o => !want || o.operation === want);
     if (!ops.length) continue;
@@ -418,9 +455,9 @@ async function cmdModel(id, values) {
 }
 
 async function cmdQuote(kind, values) {
-  if (kind !== "image" && kind !== "video") throw new UsageError("usage: quote <image|video> --model M --prompt P ...");
+  if (!KINDS.includes(kind)) throw new UsageError("usage: quote <image|video|music> --model M --prompt P ...");
   const body = await buildRequest(`generate_${kind}`, values);
-  print(summarizeQuote(await api("POST", `/v1/${kind}s/quotes`, { body })));
+  print(summarizeQuote(await api("POST", `${endpoint(kind)}/quotes`, { body })));
   return 0;
 }
 
@@ -430,7 +467,8 @@ async function cmdQuote(kind, values) {
 // Once the Job is terminal the record is removed, so running the command again asks for a new generation.
 function pendingPath(kind, values) {
   const refs = parseRefs(`generate_${kind}`, values).map(r => ({ role: r.role, src: /^https:\/\//i.test(r.src) || /^file_/.test(r.src) ? r.src : resolve(r.src) }));
-  const id = JSON.stringify([kind, values.model, values.prompt, parseParams(values.param), refs, values.routing ?? null, values["max-cost"] ?? null, values.name ?? null]);
+  const id = JSON.stringify([kind, values.model, values.prompt, parseParams(values.param), refs, values.routing ?? null, values["max-cost"] ?? null, values.name ?? null,
+    ...(kind === "music" ? [values.lyrics ?? null, values["lyrics-file"] === undefined ? null : resolve(values["lyrics-file"])] : [])]);
   return resolve(join(values.out || "yir-output", PENDING_DIR, `${createHash("sha256").update(id).digest("hex").slice(0, 32)}.json`));
 }
 
@@ -455,7 +493,7 @@ async function cmdGenerate(kind, values) {
     }
     let job;
     try {
-      job = await submit(`/v1/${kind}s/generations`, pending.body, pending.idempotency_key);
+      job = await submit(`${endpoint(kind)}/generations`, pending.body, pending.idempotency_key);
     } catch (e) {
       // A definite rejection created no Job; forget it so a corrected command starts clean.
       if (e instanceof APIError && e.status < 500 && e.code !== "YIR_RATE_LIMITED") await rm(path, { force: true });
@@ -467,7 +505,7 @@ async function cmdGenerate(kind, values) {
     log(`submitted job ${jobId} (${job.status}) model=${pending.body.model} params=${JSON.stringify(pending.body.parameters)}`);
     if (values["no-wait"]) return print(summarizeJob(job)), 0;
   }
-  const timeout = Number(values.timeout || (kind === "video" ? 1800 : 600));
+  const timeout = Number(values.timeout || DEFAULT_TIMEOUT[kind]);
   const done = await waitForJob(jobId, timeout);
   if (!done) return timedOut(jobId, timeout);
   const code = await finish(done, values, pending.request);
@@ -502,7 +540,7 @@ async function cmdCancel(id) {
   return 0;
 }
 
-// Batch plan: {"defaults": {...}, "jobs": [{name, type, model, prompt, params, image, refs, routing, max_cost}]}
+// Batch plan: {"defaults": {...}, "jobs": [{name, type, model, prompt, lyrics, lyrics_file, params, image, refs, routing, max_cost}]}
 // or a bare array of jobs. Each job's fields override defaults; params are merged.
 // Local reference paths resolve against the plan file's folder.
 async function loadPlan(file) {
@@ -520,9 +558,10 @@ async function loadPlan(file) {
     if (!NAME.test(job.name || "")) throw new UsageError(`${where}: "name" is required and may use letters, digits, '.', '_' and '-' only`);
     if (seen.has(job.name)) throw new UsageError(`${where}: duplicate name`);
     seen.add(job.name);
-    if (job.type !== "image" && job.type !== "video") throw new UsageError(`${where}: "type" must be image or video`);
+    if (!KINDS.includes(job.type)) throw new UsageError(`${where}: "type" must be image, video or music`);
     const values = {
-      model: job.model, prompt: job.prompt,
+      model: job.model, prompt: job.prompt, lyrics: job.lyrics,
+      "lyrics-file": job.lyrics_file === undefined ? undefined : resolve(base, job.lyrics_file),
       image: [].concat(job.image || []).map(local),
       ref: [].concat(job.refs || []).map(r => { const k = String(r).indexOf("="); return k > 0 ? `${r.slice(0, k)}=${local(r.slice(k + 1))}` : r; }),
       routing: job.routing === undefined ? undefined : JSON.stringify(job.routing),
@@ -614,7 +653,7 @@ async function cmdBatch(file, values) {
       j.body = await buildRequest(`generate_${j.kind}`, j.values, j.params);
       if (j.maxCost) j.body.max_cost = j.maxCost;
       const { max_cost, ...quoteBody } = j.body; // Quotes do not accept the generation-only spending cap.
-      const q = await api("POST", `/v1/${j.kind}s/quotes`, { body: quoteBody });
+      const q = await api("POST", `${endpoint(j.kind)}/quotes`, { body: quoteBody });
       // expected_amount includes reference-input charges an output-only primary estimate leaves out.
       const amount = q.expected_amount ?? q.primary?.amount;
       j.quote = amount == null ? null : Number(amount);
@@ -672,7 +711,7 @@ async function cmdBatch(file, values) {
         s.request ||= requestRecord(j.body, parseRefs(`generate_${j.kind}`, j.values));
         s.model = j.body.model;
         await persist();
-        const job = await submit(`/v1/${j.kind}s/generations`, j.body, s.idempotency_key);
+        const job = await submit(`${endpoint(j.kind)}/generations`, j.body, s.idempotency_key);
         s.job_id = job.id;
         s.status = job.status;
         delete s.body;
@@ -681,7 +720,7 @@ async function cmdBatch(file, values) {
       } else {
         log(`${j.name}: resuming job ${s.job_id}`);
       }
-      const timeout = Number(values.timeout || (j.kind === "video" ? 1800 : 600));
+      const timeout = Number(values.timeout || DEFAULT_TIMEOUT[j.kind]);
       const done = await waitForJob(s.job_id, timeout);
       if (!done) { s.status = "still_running"; log(`${j.name}: still running after ${timeout}s; re-run the batch to resume`); return; }
       s.status = done.status;
@@ -761,6 +800,7 @@ async function main(argv) {
     options: {
       help: { type: "boolean", short: "h" }, version: { type: "boolean" },
       model: { type: "string", short: "m" }, prompt: { type: "string" },
+      lyrics: { type: "string" }, "lyrics-file": { type: "string" },
       param: { type: "string", short: "p", multiple: true },
       image: { type: "string", multiple: true }, ref: { type: "string", multiple: true },
       routing: { type: "string" }, "max-cost": { type: "string" },
@@ -780,6 +820,7 @@ async function main(argv) {
     case "quote": return cmdQuote(arg, values);
     case "image": return cmdGenerate("image", values);
     case "video": return cmdGenerate("video", values);
+    case "music": return cmdGenerate("music", values);
     case "job": return cmdJob(arg, values);
     case "cancel": return cmdCancel(arg);
     case "batch": return cmdBatch(arg, values);

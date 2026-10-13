@@ -2,7 +2,7 @@
 
 Official [Agent Skills](https://agentskills.io) for [Yir](https://yir.ai), the image & video API router.
 
-The `yir` skill lets coding agents such as Claude Code and Codex generate images, edit images from local files, and generate videos through one Yir API key. It lists models and prices, quotes a request, submits the job, waits for the result and saves the files locally. For pages, decks and articles that need many assets, it runs a whole plan as one budgeted, resumable batch.
+The `yir` skill lets coding agents such as Claude Code and Codex generate images, edit images from local files, and generate videos and music through one Yir API key. It lists models and prices, quotes a request, submits the job, waits for the result and saves the files locally. For pages, decks and articles that need many assets, it runs a whole plan as one budgeted, resumable batch.
 
 ## Requirements
 
@@ -56,6 +56,7 @@ Ask your agent in plain language, for example:
 - "Generate a 16:9 hero image of a lighthouse at dusk with Yir."
 - "Use Yir to turn ./logo.png into a watercolor version."
 - "Make a 5-second video from ./first-frame.png."
+- "Make a calm lo-fi instrumental for the demo video with Yir."
 - "Check Yir job 2106985418292465664 and download the result."
 - "Make the hero, three feature images and a 5-second demo clip for this landing page with Yir, under $2."
 
@@ -67,6 +68,7 @@ node skills/yir/scripts/yir.mjs model openai/gpt-image-2
 node skills/yir/scripts/yir.mjs quote image -m openai/gpt-image-2 --prompt "a lighthouse at dusk"
 node skills/yir/scripts/yir.mjs image -m openai/gpt-image-2 --prompt "a lighthouse at dusk" -p aspect_ratio=16:9
 node skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "waves at night" -p duration=4
+node skills/yir/scripts/yir.mjs music -m minimax/music-2.6 --prompt "warm indie pop, female vocal" --lyrics-file ./lyrics.txt
 node skills/yir/scripts/yir.mjs job <id> --wait --download
 node skills/yir/scripts/yir.mjs batch plan.json --dry-run --out ./assets
 node skills/yir/scripts/yir.mjs batch plan.json --max-total 2.00 --out ./assets

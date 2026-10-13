@@ -20,17 +20,17 @@ async function fixture(t, jobs, state = {jobs:{}}) {
   globalThis.fetch = async (url, opts={}) => {
     const p = new URL(url).pathname;
     let data;
-    if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[{name:'size',type:'string',required:false,values:['3136x1344']}]},{operation:'generate_video',input_modes:['text','image'],parameters:[{name:'fps',type:'integer',required:false,values:[24]}]}]};
-    else if(p.endsWith('/quotes')) { if ('max_cost' in JSON.parse(opts.body)) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',message:'max_cost is not allowed in this request.'}}),{status:400}); data=process.env.UNKNOWN_QUOTE==='1'?{primary:{amount:null},supply:{available:true}}:{expected_amount:'0.05',supply:{available:true}}; }
+    if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[{name:'size',type:'string',required:false,values:['3136x1344']}]},{operation:'generate_video',input_modes:['text','image'],parameters:[{name:'fps',type:'integer',required:false,values:[24]}]},{operation:'generate_music',input_modes:['text'],parameters:[{name:'instrumental',type:'boolean',required:false,default:false},{name:'lyrics_optimizer',type:'boolean',required:false,default:false},{name:'n',type:'integer',required:false,values:[1]}]}]};
+    else if(p.endsWith('/quotes')) { await appendFile(process.env.CALLS+'.paths',p+'\\n'); if ('max_cost' in JSON.parse(opts.body)) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',message:'max_cost is not allowed in this request.'}}),{status:400}); data=process.env.UNKNOWN_QUOTE==='1'?{primary:{amount:null},supply:{available:true}}:{expected_amount:'0.05',supply:{available:true}}; }
     else if(p.endsWith('/generations')) {
-      await appendFile(process.env.CALLS,JSON.stringify(JSON.parse(opts.body))+'\\n');
+      await appendFile(process.env.CALLS,JSON.stringify(JSON.parse(opts.body))+'\\n'); await appendFile(process.env.CALLS+'.paths',p+'\\n');
       data={id:'2',status:'queued'};
     } else if(p.endsWith('/status')) {
       if(process.env.RATE_LIMIT_STATUS==='1' && !globalThis.limited) { globalThis.limited=true; return new Response(JSON.stringify({error:{code:'YIR_RATE_LIMITED',retryable:true}}),{status:429,headers:{'retry-after':'1'}}); }
       if(process.env.FAIL_STATUS==='1') return new Response(JSON.stringify({error:{code:'YIR_UNAUTHORIZED',retryable:false}}),{status:401});
       data={status:'succeeded'};
     }
-    else if(p.startsWith('/v1/jobs/')) data={id:p.split('/').at(-1),status:'succeeded',billing:{status:process.env.PENDING_BILL==='1'?'pending':'settled',total_charged_by_yir:p.endsWith('/1')?'0.08':'0.05'},result:{availability:'available',files:[{url:'https://mock/asset',media_type:'image/png'}]}};
+    else if(p.startsWith('/v1/jobs/')) data={id:p.split('/').at(-1),status:'succeeded',billing:{status:process.env.PENDING_BILL==='1'?'pending':'settled',total_charged_by_yir:p.endsWith('/1')?'0.08':'0.05'},result:{availability:'available',files:[process.env.MUSIC==='1'?{url:'https://mock/asset',media_type:'audio/mpeg',duration_ms:151230}:{url:'https://mock/asset',media_type:'image/png'}]}};
     else if(p==='/asset') return new Response('image',{status:process.env.FAIL_DOWNLOAD==='1'?503:200});
     else throw Error('unexpected '+p);
     return new Response(JSON.stringify(data));
@@ -40,7 +40,8 @@ async function fixture(t, jobs, state = {jobs:{}}) {
     try { result=await exec(process.execPath,['--import',pathToFileURL(mock).href,script,'batch',plan,'--out',dir,...(maxTotal===null?[]:['--max-total',maxTotal]),...extra],{env:{...process.env,YIR_API_KEY:'mock',YIR_BASE_URL:'https://mock',CALLS:join(dir,'calls'),...env}});result.code=0; }
     catch(e){result=e;}
     const calls=await readFile(join(dir,'calls'),'utf8').catch(()=> '');
-    return {...result, state:JSON.parse(await readFile(join(dir,'.yir-batch.json'),'utf8')), calls:calls.trim()?calls.trim().split('\n').map(JSON.parse):[]};
+    const paths=await readFile(join(dir,'calls.paths'),'utf8').catch(()=> '');
+    return {...result, paths:paths.trim()?paths.trim().split('\n'):[], state:JSON.parse(await readFile(join(dir,'.yir-batch.json'),'utf8')), calls:calls.trim()?calls.trim().split('\n').map(JSON.parse):[]};
   }};
 }
 test('resumed in-flight bill prevents new spend beyond total',async t=>{
@@ -161,4 +162,34 @@ test('first-frame video can omit text without synthesizing a prompt', async t =>
  const f=await fixture(t,['image']); const path=join(f.dir,'plan.json'); const plan=JSON.parse(await readFile(path,'utf8'));
  plan.defaults.type='video'; delete plan.defaults.prompt; plan.jobs[0].image=['https://example.com/first.png']; await writeFile(path,JSON.stringify(plan));
  const r=await f.run(); assert.equal(r.code,0,r.stderr); assert.equal(r.calls[0].input.type,'image'); assert.equal(Object.hasOwn(r.calls[0].input,'prompt'),false);
+});
+
+async function musicPlan(f, job) {
+ const path=join(f.dir,'plan.json'); const plan=JSON.parse(await readFile(path,'utf8'));
+ plan.defaults.type='music'; plan.defaults.model='test/music'; Object.assign(plan.jobs[0],job); await writeFile(path,JSON.stringify(plan));
+}
+test('music job sends file lyrics to the music endpoints and saves an mp3 with its duration', async t => {
+ const f=await fixture(t,['song']); await writeFile(join(f.dir,'song.txt'),'[Verse]\r\nline one\r\n');
+ await musicPlan(f,{lyrics_file:'song.txt'});
+ const r=await f.run([],{MUSIC:'1'}); assert.equal(r.code,0,r.stderr);
+ assert.deepEqual(r.paths,['/v1/music/quotes','/v1/music/generations']);
+ assert.deepEqual(r.calls[0].input,{type:'text',prompt:'test',lyrics:'[Verse]\nline one'});
+ assert.deepEqual(r.state.jobs.song.files,['song.mp3']);
+ const meta=JSON.parse(await readFile(join(f.dir,'song.json'),'utf8'));
+ assert.equal(meta.lyrics,'[Verse]\nline one'); assert.deepEqual(meta.durations,[{file:'song.mp3',duration_ms:151230}]);
+});
+test('music lyrics rules are checked before quoting or submitting', async t => {
+ for (const [job,msg] of [[{},/vocal music needs/],[{lyrics:'la',params:{instrumental:true}},/instrumental=true/],[{lyrics:'la',params:{lyrics_optimizer:true}},/lyrics_optimizer=true/],[{image:'https://example.com/a.png'},/no --image/]]) {
+  const f=await fixture(t,['song']); await musicPlan(f,job);
+  const r=await f.run(); assert.equal(r.code,2); assert.match(r.stderr,msg); assert.equal(r.calls.length,0); assert.deepEqual(r.paths,[]);
+ }
+ const f=await fixture(t,['song']); await musicPlan(f,{params:{instrumental:true}});
+ const r=await f.run([],{MUSIC:'1'}); assert.equal(r.code,0,r.stderr); assert.deepEqual(r.calls[0].input,{type:'text',prompt:'test'}); assert.deepEqual(r.calls[0].parameters,{instrumental:true});
+});
+test('music command saves the track under --name with its measured duration', async t => {
+ const f=await fixture(t,['unused']);
+ const mock=join(f.dir,'mock.mjs');
+ const r=await exec(process.execPath,['--import',pathToFileURL(mock).href,script,'music','-m','test/music','--prompt','lofi','--lyrics','hello','--name','track','--out',f.dir],{env:{...process.env,YIR_API_KEY:'mock',YIR_BASE_URL:'https://mock',CALLS:join(f.dir,'calls'),MUSIC:'1'}});
+ const out=JSON.parse(r.stdout); assert.equal(out.files[0].duration_ms,151230); assert.match(out.files[0].path,/track\.mp3$/);
+ assert.equal((await readFile(join(f.dir,'calls.paths'),'utf8')).trim(),'/v1/music/generations');
 });
