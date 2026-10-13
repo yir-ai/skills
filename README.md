@@ -2,7 +2,7 @@
 
 Official [Agent Skills](https://agentskills.io) for [Yir](https://yir.ai), the image & video API router.
 
-The `yir` skill lets coding agents such as Claude Code and Codex generate images, edit images from local files, and generate videos and music through one Yir API key. It lists models and prices, quotes a request, submits the job, waits for the result and saves the files locally. For pages, decks and articles that need many assets, it runs a whole plan as one budgeted, resumable batch.
+The `yir` skill lets coding agents such as Claude Code and Codex generate images, edit images from local files, and generate videos, music and sound effects through one Yir API key. It lists models and prices, quotes a request, submits the job, waits for the result and saves the files locally. For pages, decks and articles that need many assets, it runs a whole plan as one budgeted, resumable batch.
 
 ## Requirements
 
@@ -69,12 +69,13 @@ node skills/yir/scripts/yir.mjs quote image -m openai/gpt-image-2 --prompt "a li
 node skills/yir/scripts/yir.mjs image -m openai/gpt-image-2 --prompt "a lighthouse at dusk" -p aspect_ratio=16:9
 node skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "waves at night" -p duration=4
 node skills/yir/scripts/yir.mjs music -m minimax/music-2.6 --prompt "warm indie pop, female vocal" --lyrics-file ./lyrics.txt
+node skills/yir/scripts/yir.mjs music -m elevenlabs/sound-effects-v2 --prompt "heavy wooden door creaking open" --duration 4
 node skills/yir/scripts/yir.mjs job <id> --wait --download
 node skills/yir/scripts/yir.mjs batch plan.json --dry-run --out ./assets
 node skills/yir/scripts/yir.mjs batch plan.json --max-total 2.00 --out ./assets
 ```
 
-Results are saved to `./yir-output` by default (`--out` to change), each with a `.json` sidecar recording the prompt, parameters, channel, Job ID and charge. See [SKILL.md](skills/yir/SKILL.md) for the batch plan format. Run `--help` for all options.
+Results are saved to `./yir-output` by default (`--out` to change), each with a `.json` sidecar recording the prompt, parameters, channel, Job ID and charge. See [SKILL.md](skills/yir/SKILL.md) for the batch plan format and audio models (MiniMax Music 2.6 and 3, ElevenLabs music and sound effects, and Suno v6, which has no official API and is accessed unofficially through third-party channels). Run `--help` for all options.
 
 ## Links
 

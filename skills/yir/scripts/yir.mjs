@@ -18,10 +18,12 @@ const PENDING_DIR = ".yir-pending";
 const MEDIA_TYPES = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp",
   ".mp4": "video/mp4", ".webm": "video/webm", ".mp3": "audio/mpeg", ".wav": "audio/wav" };
 const EXTENSIONS = { "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp", "image/gif": ".gif",
-  "video/mp4": ".mp4", "video/webm": ".webm", "video/quicktime": ".mov", "audio/mpeg": ".mp3", "audio/wav": ".wav" };
+  "video/mp4": ".mp4", "video/webm": ".webm", "video/quicktime": ".mov", "audio/mpeg": ".mp3", "audio/wav": ".wav", "audio/x-wav": ".wav", "audio/wave": ".wav" };
 const REF_ROLES = new Set(["reference_image", "first_frame", "last_frame", "reference_video", "reference_audio"]);
 const KINDS = ["image", "video", "music"];
 const DEFAULT_TIMEOUT = { image: 600, video: 1800, music: 900 };
+// Contract operations each command accepts: the music endpoints also run sound-effect models.
+const OPERATIONS = { image: ["generate_image"], video: ["generate_video"], music: ["generate_music", "generate_sound_effect"] };
 // Music endpoints are /v1/music/...; image and video are /v1/images/... and /v1/videos/...
 const endpoint = kind => `/v1/${kind === "music" ? "music" : `${kind}s`}`;
 
@@ -35,7 +37,7 @@ Usage:
   node yir.mjs image  --model M --prompt P [options] Text-to-image, or image edit with --image
   node yir.mjs video  --model M --prompt P [options] Text/image/reference-to-video
   node yir.mjs music  --model M --prompt P [--lyrics-file F | -p instrumental=true | -p lyrics_optimizer=true]
-                                                    One song or instrumental track (mp3)
+                    [--duration SEC]                Song, instrumental or sound effect (mp3/wav; Suno saves two tracks)
   node yir.mjs batch <plan.json> [--max-total USD] [--concurrency N] [--dry-run]
                                                     Run many image/video/music jobs from a plan; re-run resumes
   node yir.mjs job <id> [--wait] [--download] [--out DIR]
@@ -55,7 +57,9 @@ Generation options:
   --lyrics TEXT             Music: song lyrics (lines separated by newlines, [Verse]/[Chorus] tags allowed)
   --lyrics-file PATH        Music: read the lyrics from a UTF-8 text file
                             Vocal music needs lyrics unless lyrics_optimizer=true writes them;
-                            instrumental=true takes no lyrics.
+                            instrumental=true takes no lyrics. Sound effects take no lyrics.
+  --duration SEC            Same as -p duration=SEC (video length; music/sound-effect length on
+                            length-priced models such as ElevenLabs)
   --routing JSON            Optional routing override, e.g. '{"preference":"speed"}'.
                             Keys: only, variants, preference, fallback, fidelity, accelerate.
                             Default: let Yir route.
@@ -79,7 +83,7 @@ Batch options:
 
 Output: quote/image/video/music/job/cancel/batch print one JSON object on stdout; progress goes to stderr.
 Each saved result gets a <name>.json sidecar with model, prompt, parameters, channel, Job ID and charge
-(plus lyrics and measured duration for music).
+(plus lyrics and measured duration for audio).
 Exit codes: 0 ok, 1 API or job failure, 2 usage error, 3 wait timed out (job still running).
 Environment: YIR_API_KEY (create one in the Console at ${CONSOLE_URL}), YIR_BASE_URL (optional).
 `;
@@ -179,7 +183,7 @@ function parseRefs(operation, values) {
 }
 
 function inputMode(operation, refs) {
-  if (!refs.length || operation === "generate_music") return "text";
+  if (!refs.length || (operation !== "generate_image" && operation !== "generate_video")) return "text";
   if (operation === "generate_image") return "image";
   const framed = refs.some(r => r.role === "first_frame" || r.role === "last_frame");
   const referenced = refs.some(r => r.role.startsWith("reference_"));
@@ -245,10 +249,12 @@ async function getContract(model) {
   return data.model || data;
 }
 
-// Fills required parameters the caller omitted with the model contract defaults.
+// Fills required parameters the caller omitted with the model contract defaults. Returns the contract
+// operation too: the music command runs both generate_music and generate_sound_effect models.
 async function withDefaults(model, operation, mode, params) {
   const contract = await getContract(model);
-  const ops = (contract.operations || []).filter(o => o.operation === operation);
+  const accepted = OPERATIONS[operation.replace("generate_", "")] || [operation];
+  const ops = (contract.operations || []).filter(o => accepted.includes(o.operation));
   if (!ops.length) throw new UsageError(`${model} does not support ${operation.replace("generate_", "")} generation; run \`models\``);
   const op = ops.find(o => (o.input_modes || []).includes(mode));
   if (!op) throw new UsageError(`${model} ${operation} supports input modes ${ops.flatMap(o => o.input_modes).join(", ")}, not "${mode}"`);
@@ -263,7 +269,7 @@ async function withDefaults(model, operation, mode, params) {
   }
   const out = { ...params };
   for (const p of rules.values()) if (p.required && out[p.name] === undefined && p.default !== undefined) out[p.name] = p.default;
-  return out;
+  return { parameters: out, operation: op.operation };
 }
 
 async function buildRequest(operation, values, params = parseParams(values.param)) {
@@ -271,8 +277,12 @@ async function buildRequest(operation, values, params = parseParams(values.param
   const refs = parseRefs(operation, values);
   const mode = inputMode(operation, refs);
   if ((!values.prompt || !values.prompt.trim()) && (operation !== "generate_video" || mode !== "image")) throw new UsageError("--prompt is required");
-  const parameters = await withDefaults(values.model, operation, mode, params);
-  const lyrics = await readLyrics(operation, values, parameters);
+  if (values.duration !== undefined) {
+    if (params.duration !== undefined) throw new UsageError("use --duration or -p duration=, not both");
+    params = { ...params, duration: coerce(String(values.duration)) };
+  }
+  const { parameters, operation: contractOperation } = await withDefaults(values.model, operation, mode, params);
+  const lyrics = await readLyrics(contractOperation, values, parameters);
   const input = mode === "text" ? { type: "text", prompt: values.prompt, ...(lyrics ? { lyrics } : {}) } : { type: mode, prompt: values.prompt, references: await resolveRefs(refs) };
   const body = { model: values.model, input, parameters };
   if (values.routing) {
@@ -282,12 +292,17 @@ async function buildRequest(operation, values, params = parseParams(values.param
 }
 
 // Music lyrics rules, checked before any request: instrumental takes no lyrics, lyrics_optimizer writes them,
-// otherwise vocal music needs them.
+// otherwise vocal music needs them. Sound effects take none. Per-model limits (e.g. ElevenLabs takes no
+// custom lyrics) are left to the API.
 async function readLyrics(operation, values, parameters) {
   if (values.lyrics !== undefined && values["lyrics-file"] !== undefined) throw new UsageError("use --lyrics or --lyrics-file, not both");
   let lyrics = values.lyrics;
   if (values["lyrics-file"] !== undefined) {
     try { lyrics = await readFile(values["lyrics-file"], "utf8"); } catch (e) { throw new UsageError(`cannot read lyrics file ${values["lyrics-file"]}: ${e.message}`); }
+  }
+  if (operation === "generate_sound_effect") {
+    if (lyrics !== undefined || parameters.instrumental !== undefined || parameters.lyrics_optimizer !== undefined) throw new UsageError("sound effects take no lyrics, instrumental or lyrics_optimizer; describe the sound in --prompt");
+    return undefined;
   }
   if (operation !== "generate_music") {
     if (lyrics !== undefined) throw new UsageError("--lyrics/--lyrics-file apply to music only");
@@ -377,7 +392,7 @@ async function writeSidecar(job, outDir, stem, paths, request) {
   // Per-file grade from the gateway's C2PA and channel audit: whether this file is the model's own output.
   const graded = (job.result?.files || []).map((f, i) => f.fidelity && paths[i] ? { file: basename(paths[i]), ...f.fidelity } : null).filter(Boolean);
   if (graded.length) meta.fidelity = graded;
-  // Measured playback length of audio results (music has no duration control).
+  // Measured playback length of audio results.
   const timed = (job.result?.files || []).map((f, i) => f.duration_ms && paths[i] ? { file: basename(paths[i]), duration_ms: f.duration_ms } : null).filter(Boolean);
   if (timed.length) meta.durations = timed;
   await writeFile(resolve(join(outDir, `${stem}.json`)), `${JSON.stringify(meta, null, 2)}\n`);
@@ -411,10 +426,10 @@ function requestRecord(body, refs) {
 async function cmdModels(values) {
   const data = await api("GET", "/v1/models?include=parameters");
   if (values.json) return print(data), 0;
-  const want = values.type ? `generate_${values.type}` : null;
   if (values.type && !KINDS.includes(values.type)) throw new UsageError("--type must be image, video or music");
+  const want = values.type ? OPERATIONS[values.type] : null;
   for (const m of data.models || []) {
-    const ops = (m.operations || []).filter(o => !want || o.operation === want);
+    const ops = (m.operations || []).filter(o => !want || want.includes(o.operation));
     if (!ops.length) continue;
     const modes = {};
     for (const o of ops) for (const m of o.input_modes) (modes[o.operation.replace("generate_", "")] ||= new Set()).add(m);
@@ -468,6 +483,7 @@ async function cmdQuote(kind, values) {
 function pendingPath(kind, values) {
   const refs = parseRefs(`generate_${kind}`, values).map(r => ({ role: r.role, src: /^https:\/\//i.test(r.src) || /^file_/.test(r.src) ? r.src : resolve(r.src) }));
   const id = JSON.stringify([kind, values.model, values.prompt, parseParams(values.param), refs, values.routing ?? null, values["max-cost"] ?? null, values.name ?? null,
+    ...(values.duration !== undefined ? [values.duration] : []),
     ...(kind === "music" ? [values.lyrics ?? null, values["lyrics-file"] === undefined ? null : resolve(values["lyrics-file"])] : [])]);
   return resolve(join(values.out || "yir-output", PENDING_DIR, `${createHash("sha256").update(id).digest("hex").slice(0, 32)}.json`));
 }
@@ -540,7 +556,7 @@ async function cmdCancel(id) {
   return 0;
 }
 
-// Batch plan: {"defaults": {...}, "jobs": [{name, type, model, prompt, lyrics, lyrics_file, params, image, refs, routing, max_cost}]}
+// Batch plan: {"defaults": {...}, "jobs": [{name, type, model, prompt, lyrics, lyrics_file, duration, params, image, refs, routing, max_cost}]}
 // or a bare array of jobs. Each job's fields override defaults; params are merged.
 // Local reference paths resolve against the plan file's folder.
 async function loadPlan(file) {
@@ -560,7 +576,7 @@ async function loadPlan(file) {
     seen.add(job.name);
     if (!KINDS.includes(job.type)) throw new UsageError(`${where}: "type" must be image, video or music`);
     const values = {
-      model: job.model, prompt: job.prompt, lyrics: job.lyrics,
+      model: job.model, prompt: job.prompt, lyrics: job.lyrics, duration: job.duration,
       "lyrics-file": job.lyrics_file === undefined ? undefined : resolve(base, job.lyrics_file),
       image: [].concat(job.image || []).map(local),
       ref: [].concat(job.refs || []).map(r => { const k = String(r).indexOf("="); return k > 0 ? `${r.slice(0, k)}=${local(r.slice(k + 1))}` : r; }),
@@ -800,7 +816,7 @@ async function main(argv) {
     options: {
       help: { type: "boolean", short: "h" }, version: { type: "boolean" },
       model: { type: "string", short: "m" }, prompt: { type: "string" },
-      lyrics: { type: "string" }, "lyrics-file": { type: "string" },
+      lyrics: { type: "string" }, "lyrics-file": { type: "string" }, duration: { type: "string" },
       param: { type: "string", short: "p", multiple: true },
       image: { type: "string", multiple: true }, ref: { type: "string", multiple: true },
       routing: { type: "string" }, "max-cost": { type: "string" },

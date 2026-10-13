@@ -1,6 +1,6 @@
 ---
 name: yir
-description: Generate and edit images, and generate videos and music, through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, make a song or instrumental track, produce a set of images or clips for a page, deck or article in one batch, compare or pick image/video/music models and prices, or check, download or cancel a Yir job by ID. Requires YIR_API_KEY.
+description: Generate and edit images, and generate videos and music, through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, make a song, instrumental track or sound effect, produce a set of images or clips for a page, deck or article in one batch, compare or pick image/video/music models and prices, or check, download or cancel a Yir job by ID. Requires YIR_API_KEY.
 ---
 
 # Yir image, video and music jobs
@@ -53,7 +53,7 @@ When the user needs several images or clips, write a plan file and run it as one
 }
 ```
 
-Each job takes `name` (required, unique, becomes the file name), `type` (`image`, `video` or `music`), `model`, `prompt`, `params` (merged over the defaults), `image`, `refs` (`role=path`), `lyrics` or `lyrics_file` (music only), `routing` and `max_cost`. Local paths are relative to the plan file.
+Each job takes `name` (required, unique, becomes the file name), `type` (`image`, `video` or `music`), `model`, `prompt`, `params` (merged over the defaults), `image`, `refs` (`role=path`), `lyrics` or `lyrics_file` (music only), `duration` (same as `params.duration`), `routing` and `max_cost`. Local paths are relative to the plan file.
 
 ```sh
 node scripts/yir.mjs batch plan.json --dry-run --out ./assets        # validate and quote every job; submits nothing
@@ -89,6 +89,10 @@ node scripts/yir.mjs video -m bytedance/seedance-2.5 --prompt "replace the man w
 # Song with lyrics, instrumental, or lyrics written from the prompt (see Music below)
 node scripts/yir.mjs music -m minimax/music-2.6 --prompt "warm indie pop, female vocal, summer evening" --lyrics-file ./lyrics.txt
 node scripts/yir.mjs music -m minimax/music-2.6 --prompt "calm lo-fi piano for a product demo" -p instrumental=true
+node scripts/yir.mjs music -m elevenlabs/music-v2.5 --prompt "upbeat synthwave, male vocal" -p lyrics_optimizer=true --duration 120
+
+# Sound effect (1-22 s)
+node scripts/yir.mjs music -m elevenlabs/sound-effects-v2 --prompt "heavy wooden door creaking open" --duration 4
 
 # Existing jobs
 node scripts/yir.mjs job <id>                       # status, billing, result links
@@ -96,17 +100,25 @@ node scripts/yir.mjs job <id> --wait --download     # wait, then save results
 node scripts/yir.mjs cancel <id>
 ```
 
-Options: `-p key=value` (repeatable), `--image` (reference_image for image jobs, first_frame for video jobs), `--ref role=src` (repeatable), `--lyrics TEXT` / `--lyrics-file PATH` (music), `--max-cost USD` (caps the Job's total charge), `--out DIR`, `--name STEM`, `--no-wait`, `--timeout SEC` (default 600 image, 1800 video, 900 music), `--routing JSON`.
+Options: `-p key=value` (repeatable), `--image` (reference_image for image jobs, first_frame for video jobs), `--ref role=src` (repeatable), `--lyrics TEXT` / `--lyrics-file PATH` (music), `--duration SEC` (same as `-p duration=SEC`), `--max-cost USD` (caps the Job's total charge), `--out DIR`, `--name STEM`, `--no-wait`, `--timeout SEC` (default 600 image, 1800 video, 900 music), `--routing JSON`.
 
 ## Music
 
-`music` makes one track per Job from a text prompt (style, mood, scene; up to 2000 characters) and optional lyrics (up to 3500 characters, lines separated by newlines, tags such as `[Verse]` and `[Chorus]` allowed). It takes no reference files. Pick one of three forms; the script rejects other combinations before sending anything:
+`music` runs music and sound-effect models from a text prompt (style, mood, scene, or the sound) and optional lyrics (lines separated by newlines, tags such as `[Verse]` and `[Chorus]` allowed). Prompt and lyrics limits are per model. It takes no reference files. Pick one of three forms; the script rejects other combinations before sending anything, and the API rejects forms a model does not offer:
 
 - **Song with your lyrics:** `--lyrics-file ./lyrics.txt` (or `--lyrics "..."` for short text). Vocal music needs lyrics.
 - **Instrumental:** `-p instrumental=true`, no lyrics.
 - **Lyrics written for you:** `-p lyrics_optimizer=true`, no lyrics; Yir writes them from the prompt for a small extra charge shown in the quote.
 
-There is no duration, tempo or key control. The result is one `audio/mpeg` file saved as `.mp3`; its measured length is `files[].duration_ms` in the summary and `durations` in the sidecar, which also records the lyrics. Tell the user the length. Current model: `minimax/music-2.6` (alias `music-2.6`), official MiniMax channel, about $0.15 per track plus $0.01 when lyrics are written for you; check `model minimax/music-2.6` or `quote music` for the current price.
+Models (check `model <id>` or `quote music` for current prices):
+
+- `minimax/music-2.6`: all three forms; the model picks the length. About $0.15 per track, plus $0.01 when lyrics are written for you.
+- `minimax/music-3`: your own lyrics required, no instrumental or written lyrics; song ends with the lyrics, up to 300 s. Quoted at the 300 s cap ($0.60), charged for the actual length; delivers WAV.
+- `elevenlabs/music-v2`, `elevenlabs/music-v2.5`: no custom lyrics; use `-p lyrics_optimizer=true` or `-p instrumental=true`. `--duration` 30, 60, 120, 180, 240 or 300 (default 60); $0.60 per started minute (60 s = $0.60, 300 s = $3.00).
+- `elevenlabs/sound-effects-v2`: short sound effects, `--duration` 1-22 s (default 5), no lyrics or switches. About $0.002 per second.
+- `suno/suno-v6`: all three forms; every request makes two tracks (`n` is 2), about $0.05-0.06 per request. Suno has no official API; Yir accesses it unofficially through third-party channels. Say so when the user picks it.
+
+There is no tempo or key control. Each delivered track is saved with its type's extension (`.mp3`, or `.wav` for Music 3); two tracks save as `<name>-1` and `<name>-2`. The measured length is `files[].duration_ms` in the summary and `durations` in the sidecar, which also records the lyrics. Tell the user the length.
 
 Routing: do not pass `--routing` unless the user asks; Yir picks the channel and fails over by itself. When asked, keys are `only` (list of providers), `variants`, `preference` (`cost` default, or `speed`), `fallback` (boolean), `fidelity` and `accelerate` (boolean), e.g. `--routing '{"preference":"speed"}'`.
 
