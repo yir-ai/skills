@@ -68,8 +68,8 @@ if (quote && result.ok) {
   const kind = dialect.endpoints[endpoint].operation === 'generate_video' ? 'videos' : 'images'
   const response = await fetch(`${BASE_URL}/v1/${kind}/quotes`, {
     method: 'POST',
-    // A dedicated User-Agent lets Yir see whether migrations are used at all; no request content is added.
-    headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json', 'user-agent': 'yir-skill-from-fal/1' },
+    // User-Agent keeps the yir-skill/ prefix that Skill usage is counted by, and marks fal migrations; no request content is added.
+    headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json', 'user-agent': 'yir-skill/from-fal' },
     body: JSON.stringify(result.request),
   })
   const quoted = await response.json().catch(() => ({}))
