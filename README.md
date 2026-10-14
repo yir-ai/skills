@@ -59,6 +59,7 @@ Ask your agent in plain language, for example:
 - "Make a calm lo-fi instrumental for the demo video with Yir."
 - "Check Yir job 2106985418292465664 and download the result."
 - "Make the hero, three feature images and a 5-second demo clip for this landing page with Yir, under $2."
+- "Move the fal calls in this project to Yir and show me what changes."
 
 You can also run the script directly:
 
@@ -73,6 +74,7 @@ node skills/yir/scripts/yir.mjs music -m elevenlabs/sound-effects-v2 --prompt "h
 node skills/yir/scripts/yir.mjs job <id> --wait --download
 node skills/yir/scripts/yir.mjs batch plan.json --dry-run --out ./assets
 node skills/yir/scripts/yir.mjs batch plan.json --max-total 2.00 --out ./assets
+node skills/yir/scripts/from-fal.mjs bytedance/seedance-2.5/image-to-video --json '{"prompt":"a boat","image_url":"https://example.com/a.png","duration":"5"}' --quote
 ```
 
 Results are saved to `./yir-output` by default (`--out` to change), each with a `.json` sidecar recording the prompt, parameters, channel, Job ID and charge. See [SKILL.md](skills/yir/SKILL.md) for the batch plan format and audio models (MiniMax Music 2.6 and 3, ElevenLabs music and sound effects, and Suno v6 / v6 Wild / v6 Mini, which have no official API and is accessed unofficially through third-party channels). Run `--help` for all options.

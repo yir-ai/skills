@@ -1,6 +1,6 @@
 ---
 name: yir
-description: Generate and edit images, and generate videos and music, through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, make a song, instrumental track or sound effect, produce a set of images or clips for a page, deck or article in one batch, compare or pick image/video/music models and prices, or check, download or cancel a Yir job by ID. Requires YIR_API_KEY.
+description: Generate and edit images, and generate videos and music, through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, make a song, instrumental track or sound effect, produce a set of images or clips for a page, deck or article in one batch, compare or pick image/video/music models and prices, check, download or cancel a Yir job by ID, or migrate existing fal (fal.ai) code to Yir. Requires YIR_API_KEY.
 ---
 
 # Yir image, video and music jobs
@@ -125,6 +125,22 @@ Routing: do not pass `--routing` unless the user asks; Yir picks the channel and
 `fidelity` sets how faithful the channel must be to the official model: `genuine` (the default unless the API Key's routing profile sets another) skips channels known to upscale or alter the output, `original` keeps only channels that return the model's native output, `any` applies no filter. Use `{"fidelity":"original"}` when the user says the results will be published or shown as what the model produces (showcases, landing pages, comparisons), and tell them it may cost more or leave fewer channels. If every channel is excluded, generation fails with `YIR_FIDELITY_EXCLUDED`; relax to `genuine`. Each delivered file also carries `fidelity.grade` (`original`, `app`, `equivalent`, `altered` or `unverified`), copied into the sidecar; before presenting a result as the model's own output, check that it is `original`.
 
 `accelerate` is on by default: when an image attempt stalls well past its channel's usual completion time and another eligible channel remains, Yir cuts it off and retries there (if the stalled upstream still bills, that cost is charged and counts toward `--max-cost`). Leave it alone; pass `{"accelerate":false}` only when the user must stay on one slow channel.
+
+## Migrating code from fal
+
+Use this when the user wants existing fal code moved to Yir: `fal_client.subscribe`/`submit` (Python), `fal.subscribe`/`fal.queue.submit` from `@fal-ai/client`, or HTTP calls to `queue.fal.run`/`fal.run`.
+
+1. **Find every fal call.** Note each call's endpoint ID (such as `bytedance/seedance-2.5/image-to-video`) and the request body (`arguments`/`input`). `node scripts/from-fal.mjs --list` shows which fal endpoints map to a Yir model.
+2. **Translate each call:** `node scripts/from-fal.mjs <endpoint> --json '<body>' --quote` (or `--file body.json`). When the body is built from variables, translate a representative literal and every value the code can pass (for example each `duration` a UI offers). The script never guesses: it prints the Yir request plus a per-field report, and `--quote` asks Yir for the price without creating a Job.
+3. **Read the report before rewriting.**
+   - `filled_default`: fal applied a default the code never set, so the Yir request sets it explicitly to keep the output the same (for example Seedance audio on, which Yir would otherwise leave off). Keep these values in the rewritten code.
+   - `split`: `num_images` above 1 becomes that many Yir Jobs, each with its own idempotency key.
+   - `yir_default`: a Yir parameter fal does not have; Yir's default applies.
+   - `errors`: needs a decision; never work around one silently. Typical cases: fal's automatic duration (pick explicit seconds), fal-only options such as `seed`, `negative_prompt` or safety toggles (Yir accepts only their defaults), and sizes with no exact Yir tier (set `resolution`/`aspect_ratio` from `node scripts/yir.mjs model <id>`).
+   - An endpoint missing from `--list`, or listed with `supported: false`, has no Yir equivalent yet. Leave that call on fal and say so.
+4. **Confirm with the user first.** Show one row per call site: fal endpoint, Yir model, what changes (from the report and errors) and the quoted price per Job. Edit code only after the user agrees.
+5. **Rewrite.** The translated `request` is the body for `POST /v1/images/generations` or `/v1/videos/generations` on `https://gateway.yir.ai` with `Authorization: Bearer $YIR_API_KEY`; it returns an async Job to poll at `/v1/jobs/{id}` or receive by Webhook (see https://yir.ai/docs). Replace the fal key with `YIR_API_KEY`. Inputs uploaded with `fal.storage.upload` become a public HTTPS `url` or a Yir `file_id`. Results arrive as short-lived signed URLs in `result.files`; download or store them right away.
+6. **Verify.** Quote every rewritten call. Run one real Job per model only if the user approves the cost.
 
 ## What to expect
 
