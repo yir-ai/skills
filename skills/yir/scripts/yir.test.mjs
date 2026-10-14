@@ -21,7 +21,7 @@ async function fixture(t, jobs, state = {jobs:{}}) {
     const p = new URL(url).pathname;
     let data;
     if(p.includes('/models/test/sfx')) data={operations:[{operation:'generate_sound_effect',input_modes:['text'],parameters:[{name:'duration',type:'integer',required:false,default:5,minimum:1,maximum:22},{name:'n',type:'integer',required:false,values:[1]}]}]};
-    else if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[{name:'size',type:'string',required:false,values:['3136x1344']}]},{operation:'generate_video',input_modes:['text','image'],parameters:[{name:'fps',type:'integer',required:false,values:[24]}]},{operation:'generate_music',input_modes:['text'],parameters:[{name:'instrumental',type:'boolean',required:false,default:false},{name:'lyrics_optimizer',type:'boolean',required:false,default:false},{name:'duration',type:'integer',required:false,values:[30,60,120],default:60},{name:'n',type:'integer',required:false,values:[1,2]}]}]};
+    else if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[{name:'size',type:'string',required:false,values:['3136x1344']}]},{operation:'generate_video',input_modes:['text','image','reference'],parameters:[{name:'fps',type:'integer',required:false,values:[24]}]},{operation:'generate_music',input_modes:['text'],parameters:[{name:'instrumental',type:'boolean',required:false,default:false},{name:'lyrics_optimizer',type:'boolean',required:false,default:false},{name:'duration',type:'integer',required:false,values:[30,60,120],default:60},{name:'n',type:'integer',required:false,values:[1,2]}]}]};
     else if(p.endsWith('/quotes')) { await appendFile(process.env.CALLS+'.paths',p+'\\n'); if ('max_cost' in JSON.parse(opts.body)) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',message:'max_cost is not allowed in this request.'}}),{status:400}); data=process.env.UNKNOWN_QUOTE==='1'?{primary:{amount:null},supply:{available:true}}:{expected_amount:'0.05',supply:{available:true}}; }
     else if(p.endsWith('/generations')) {
       await appendFile(process.env.CALLS,JSON.stringify(JSON.parse(opts.body))+'\\n'); await appendFile(process.env.CALLS+'.paths',p+'\\n');
@@ -218,4 +218,16 @@ test('two-track result saves every audio file with its media-type extension', as
  assert.deepEqual(r.state.jobs.pair.files,['pair-1.mp3','pair-2.wav']);
  const meta=JSON.parse(await readFile(join(f.dir,'pair.json'),'utf8'));
  assert.deepEqual(meta.durations,[{file:'pair-1.mp3',duration_ms:150000},{file:'pair-2.wav',duration_ms:140000}]);
+});
+test('reference_image@NAME groups photos into a subject and rejects invalid names', async t => {
+ const f=await fixture(t,['unused']);
+ const mock=join(f.dir,'mock.mjs'); const env={...process.env,YIR_API_KEY:'mock',YIR_BASE_URL:'https://mock',CALLS:join(f.dir,'calls')};
+ const base=[ '--import',pathToFileURL(mock).href,script,'video','-m','test/video','--prompt','@hero waves','--out',f.dir,'--no-wait'];
+ await exec(process.execPath,[...base,'--ref','reference_image@hero=https://example.com/a.png','--ref','reference_image@hero=https://example.com/b.png'],{env});
+ const call=JSON.parse((await readFile(join(f.dir,'calls'),'utf8')).trim().split('\n')[0]);
+ assert.equal(call.input.type,'reference');
+ assert.deepEqual(call.input.references,[{role:'reference_image',url:'https://example.com/a.png',subject:'hero'},{role:'reference_image',url:'https://example.com/b.png',subject:'hero'}]);
+ for (const bad of ['reference_video@hero=https://example.com/a.mp4','reference_image@1hero=https://example.com/a.png','reference_image@a@b=https://example.com/a.png']) {
+  await assert.rejects(()=>exec(process.execPath,[...base,'--ref',bad],{env}),e=>e.code===2,bad);
+ }
 });

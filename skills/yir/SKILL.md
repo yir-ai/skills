@@ -83,6 +83,11 @@ node scripts/yir.mjs video -m <model> --prompt "..." --ref first_frame=./start.p
 # Reference video (roles reference_image / reference_video / reference_audio)
 node scripts/yir.mjs video -m <model> --prompt "..." --ref reference_image=./character.png
 
+# Characters from photos (Kling 3.0): 2-4 photos per character, up to 3, named with @NAME in the prompt
+node scripts/yir.mjs video -m klingai/kling-3.0 --prompt "@hero hands a coffee to @friend" -p aspect_ratio=16:9 \
+  --ref reference_image@hero=./hero-front.png --ref reference_image@hero=./hero-side.png \
+  --ref reference_image@friend=./friend-front.png --ref reference_image@friend=./friend-side.png
+
 # Edit a video (Seedance 2.5): output length and aspect follow the input video
 node scripts/yir.mjs video -m bytedance/seedance-2.5 --prompt "replace the man with a woman in a red coat" --ref reference_video=./clip.mp4 -p duration=auto -p aspect_ratio=auto
 

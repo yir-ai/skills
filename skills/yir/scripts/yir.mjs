@@ -20,6 +20,7 @@ const MEDIA_TYPES = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image
 const EXTENSIONS = { "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp", "image/gif": ".gif",
   "video/mp4": ".mp4", "video/webm": ".webm", "video/quicktime": ".mov", "audio/mpeg": ".mp3", "audio/wav": ".wav", "audio/x-wav": ".wav", "audio/wave": ".wav" };
 const REF_ROLES = new Set(["reference_image", "first_frame", "last_frame", "reference_video", "reference_audio"]);
+const SUBJECT_NAME = /^[A-Za-z][A-Za-z0-9_]{0,31}$/;
 const KINDS = ["image", "video", "music"];
 const DEFAULT_TIMEOUT = { image: 600, video: 1800, music: 900 };
 // Contract operations each command accepts: the music endpoints also run sound-effect models.
@@ -53,6 +54,8 @@ Generation options:
   --image PATH|URL          Shorthand reference: reference_image for image, first_frame for video
   --ref role=PATH|URL       Reference with explicit role, repeatable. Roles: reference_image,
                             first_frame, last_frame, reference_video, reference_audio
+                            reference_image@NAME=PATH groups photos into character NAME (models
+                            listing "subjects" under model <id>); write @NAME in the prompt.
                             Local files are uploaded through the Files API first.
   --lyrics TEXT             Music: song lyrics (lines separated by newlines, [Verse]/[Chorus] tags allowed)
   --lyrics-file PATH        Music: read the lyrics from a UTF-8 text file
@@ -175,9 +178,12 @@ function parseRefs(operation, values) {
   for (const src of values.image || []) refs.push({ role: operation === "generate_image" ? "reference_image" : "first_frame", src });
   for (const item of values.ref || []) {
     const i = item.indexOf("=");
-    const role = i > 0 ? item.slice(0, i) : "";
-    if (!REF_ROLES.has(role)) throw new UsageError(`--ref expects role=PATH|URL with role in ${[...REF_ROLES].join(", ")}, got "${item}"`);
-    refs.push({ role, src: item.slice(i + 1) });
+    const [role, subject, extra] = (i > 0 ? item.slice(0, i) : "").split("@");
+    if (!REF_ROLES.has(role) || extra !== undefined) throw new UsageError(`--ref expects role=PATH|URL with role in ${[...REF_ROLES].join(", ")}, got "${item}"`);
+    if (subject !== undefined && (role !== "reference_image" || !SUBJECT_NAME.test(subject))) {
+      throw new UsageError(`--ref reference_image@NAME=PATH needs NAME of letters, digits or _ starting with a letter (max 32), got "${item}"`);
+    }
+    refs.push({ role, src: item.slice(i + 1), ...(subject !== undefined ? { subject } : {}) });
   }
   return refs;
 }
@@ -233,12 +239,13 @@ async function uploadLocal(path) {
 
 async function resolveRefs(refs) {
   const out = [];
-  for (const { role, src } of refs) {
-    if (/^https:\/\//i.test(src)) out.push({ role, url: src });
-    else if (/^file_[0-9a-f-]{36}$/.test(src)) out.push({ role, file_id: src });
+  for (const { role, src, subject } of refs) {
+    const extra = subject ? { subject } : {};
+    if (/^https:\/\//i.test(src)) out.push({ role, url: src, ...extra });
+    else if (/^file_[0-9a-f-]{36}$/.test(src)) out.push({ role, file_id: src, ...extra });
     else {
       try { await stat(src); } catch { throw new UsageError(`reference not found: ${src} (use a local path, an https URL or a file_ id)`); }
-      out.push({ role, file_id: await uploadLocal(src) });
+      out.push({ role, file_id: await uploadLocal(src), ...extra });
     }
   }
   return out;
@@ -420,7 +427,7 @@ function stemOf(values, job) {
 // What the sidecar records about the request: local reference paths as given, never uploaded file IDs only.
 function requestRecord(body, refs) {
   return { input: { prompt: body.input.prompt, ...(body.input.lyrics ? { lyrics: body.input.lyrics } : {}) }, parameters: body.parameters, routing: body.routing,
-    references: refs.length ? refs.map(r => ({ role: r.role, src: r.src })) : undefined };
+    references: refs.length ? refs.map(r => ({ role: r.role, src: r.src, ...(r.subject ? { subject: r.subject } : {}) })) : undefined };
 }
 
 async function cmdModels(values) {
@@ -452,6 +459,12 @@ async function cmdModel(id, values) {
     out.push(`\n${op.operation}  input modes: ${op.input_modes.join(", ")}`);
     for (const [mode, c] of Object.entries(op.input_constraints || {})) {
       if (c.max_references) out.push(`  ${mode}: ${c.min_references}-${c.max_references} references, roles ${c.allowed_reference_roles.join(", ")}`);
+      const s = c.subject_references;
+      if (s) {
+        const spec = [s.resolutions && `resolution ${s.resolutions.join("/")}`, s.aspect_ratios && `aspect_ratio ${s.aspect_ratios.join("/")}`,
+          s.allowed_durations && `duration ${s.allowed_durations.join("/")}`].filter(Boolean).join(", ");
+        out.push(`  ${mode} subjects: up to ${s.max_subjects} characters x ${s.min_images_per_subject}-${s.max_images_per_subject} photos (--ref reference_image@NAME=PATH, @NAME in prompt)${spec ? `; ${spec}` : ""}`);
+      }
     }
     out.push("  parameters:");
     for (const p of op.parameters || []) {
@@ -481,7 +494,7 @@ async function cmdQuote(kind, values) {
 // the same key (a lost response cannot create a second Job) or keeps waiting on the Job it already has.
 // Once the Job is terminal the record is removed, so running the command again asks for a new generation.
 function pendingPath(kind, values) {
-  const refs = parseRefs(`generate_${kind}`, values).map(r => ({ role: r.role, src: /^https:\/\//i.test(r.src) || /^file_/.test(r.src) ? r.src : resolve(r.src) }));
+  const refs = parseRefs(`generate_${kind}`, values).map(r => ({ role: r.role, src: /^https:\/\//i.test(r.src) || /^file_/.test(r.src) ? r.src : resolve(r.src), ...(r.subject ? { subject: r.subject } : {}) }));
   const id = JSON.stringify([kind, values.model, values.prompt, parseParams(values.param), refs, values.routing ?? null, values["max-cost"] ?? null, values.name ?? null,
     ...(values.duration !== undefined ? [values.duration] : []),
     ...(kind === "music" ? [values.lyrics ?? null, values["lyrics-file"] === undefined ? null : resolve(values["lyrics-file"])] : [])]);
