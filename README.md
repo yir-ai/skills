@@ -75,7 +75,7 @@ node skills/yir/scripts/yir.mjs batch plan.json --dry-run --out ./assets
 node skills/yir/scripts/yir.mjs batch plan.json --max-total 2.00 --out ./assets
 ```
 
-Results are saved to `./yir-output` by default (`--out` to change), each with a `.json` sidecar recording the prompt, parameters, channel, Job ID and charge. See [SKILL.md](skills/yir/SKILL.md) for the batch plan format and audio models (MiniMax Music 2.6 and 3, ElevenLabs music and sound effects, and Suno v6, which has no official API and is accessed unofficially through third-party channels). Run `--help` for all options.
+Results are saved to `./yir-output` by default (`--out` to change), each with a `.json` sidecar recording the prompt, parameters, channel, Job ID and charge. See [SKILL.md](skills/yir/SKILL.md) for the batch plan format and audio models (MiniMax Music 2.6 and 3, ElevenLabs music and sound effects, and Suno v6 / v6 Wild / v6 Mini, which have no official API and is accessed unofficially through third-party channels). Run `--help` for all options.
 
 ## Links
 

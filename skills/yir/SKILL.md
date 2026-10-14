@@ -116,7 +116,7 @@ Models (check `model <id>` or `quote music` for current prices):
 - `minimax/music-3`: your own lyrics required, no instrumental or written lyrics; song ends with the lyrics, up to 300 s. Quoted at the 300 s cap ($0.60), charged for the actual length; delivers WAV.
 - `elevenlabs/music-v2`, `elevenlabs/music-v2.5`: no custom lyrics; use `-p lyrics_optimizer=true` or `-p instrumental=true`. `--duration` 30, 60, 120, 180, 240 or 300 (default 60); $0.60 per started minute (60 s = $0.60, 300 s = $3.00).
 - `elevenlabs/sound-effects-v2`: short sound effects, `--duration` 1-22 s (default 5), no lyrics or switches. About $0.002 per second.
-- `suno/suno-v6`: all three forms; every request makes two tracks (`n` is 2), about $0.05-0.06 per request. Suno has no official API; Yir accesses it unofficially through third-party channels. Say so when the user picks it.
+- `suno/suno-v6`, `suno/suno-v6-wild` (experimental), `suno/suno-v6-mini` (efficient, may return shorter tracks): all three forms; every request makes two tracks (`n` is 2), about $0.05-0.06 per request. Suno has no official API; Yir accesses it unofficially through third-party channels. Say so when the user picks it.
 
 There is no tempo or key control. Each delivered track is saved with its type's extension (`.mp3`, or `.wav` for Music 3); two tracks save as `<name>-1` and `<name>-2`. The measured length is `files[].duration_ms` in the summary and `durations` in the sidecar, which also records the lyrics. Tell the user the length.
 
