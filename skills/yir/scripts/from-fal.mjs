@@ -68,7 +68,8 @@ if (quote && result.ok) {
   const kind = dialect.endpoints[endpoint].operation === 'generate_video' ? 'videos' : 'images'
   const response = await fetch(`${BASE_URL}/v1/${kind}/quotes`, {
     method: 'POST',
-    headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+    // A dedicated User-Agent lets Yir see whether migrations are used at all; no request content is added.
+    headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json', 'user-agent': 'yir-skill-from-fal/1' },
     body: JSON.stringify(result.request),
   })
   const quoted = await response.json().catch(() => ({}))

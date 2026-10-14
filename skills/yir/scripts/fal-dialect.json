@@ -11,9 +11,10 @@
         "max": 1
       },
       "fields": {
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
         },
         "enable_safety_checker": {
           "kind": "default_only",
@@ -24,11 +25,6 @@
           "role": "first_frame",
           "required": true
         },
-        "duration": {
-          "kind": "param",
-          "param": "duration",
-          "fal_default": 5
-        },
         "prompt": {
           "kind": "prompt"
         },
@@ -36,6 +32,10 @@
           "kind": "param",
           "param": "resolution",
           "fal_default": "1080p"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -89,31 +89,31 @@
         "max": 0
       },
       "fields": {
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
           "fal_default": "16:9"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "1080p"
         },
         "duration": {
           "kind": "param",
           "param": "duration",
           "fal_default": 5
         },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
         "prompt": {
           "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1080p"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -166,25 +166,18 @@
           "kind": "default_only",
           "fal_default": true
         },
-        "prompt": {
-          "kind": "prompt"
+        "guidance_scale": {
+          "kind": "default_only",
+          "fal_default": 1
         },
         "image_size": {
           "kind": "image_size",
           "fal_default": "square_hd"
         },
-        "guidance_scale": {
-          "kind": "default_only",
-          "fal_default": 1
-        },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
         },
         "negative_prompt": {
           "kind": "default_only",
@@ -198,14 +191,21 @@
           "fal_default": "png",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
+        "prompt": {
+          "kind": "prompt"
+        },
         "prompt_expander": {
           "kind": "default_only",
           "fal_default": "quality"
         },
-        "image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": true
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -249,41 +249,41 @@
           "kind": "default_only",
           "fal_default": true
         },
-        "prompt": {
-          "kind": "prompt"
+        "guidance_scale": {
+          "kind": "default_only",
+          "fal_default": 1
         },
         "image_size": {
           "kind": "image_size",
           "fal_default": "square_hd"
         },
-        "guidance_scale": {
-          "kind": "default_only",
-          "fal_default": 1
-        },
         "negative_prompt": {
           "kind": "default_only",
           "fal_default": ""
         },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
         "num_images": {
           "kind": "output_count"
-        },
-        "prompt_expander": {
-          "kind": "default_only",
-          "fal_default": "quality"
         },
         "output_format": {
           "kind": "delivery",
           "fal_default": "png",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "prompt_expander": {
+          "kind": "default_only",
+          "fal_default": "quality"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -328,13 +328,24 @@
         "max": 0
       },
       "fields": {
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
         "enable_prompt_expansion": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "square_hd"
+        },
+        "negative_prompt": {
+          "kind": "default_only",
+          "fal_default": ""
+        },
+        "num_images": {
+          "kind": "output_count"
         },
         "output_format": {
           "kind": "delivery",
@@ -344,25 +355,14 @@
         "prompt": {
           "kind": "prompt"
         },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "sync_mode": {
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "negative_prompt": {
-          "kind": "default_only",
-          "fal_default": ""
-        },
-        "image_size": {
-          "kind": "image_size",
-          "fal_default": "square_hd"
-        },
-        "num_images": {
-          "kind": "output_count"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
         }
       },
       "yir_parameters": {
@@ -410,36 +410,10 @@
         }
       },
       "fields": {
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
           "fal_default": "adaptive"
-        },
-        "start_image_url": {
-          "kind": "reference",
-          "role": "first_frame",
-          "required": true
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "1080p"
-        },
-        "enable_prompt_expansion": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "enable_thinking": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "audio": {
           "kind": "default_only",
@@ -450,6 +424,18 @@
           "param": "duration",
           "fal_default": 5
         },
+        "enable_prompt_expansion": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "enable_thinking": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "end_image_url": {
           "kind": "reference",
           "role": "last_frame",
@@ -457,6 +443,20 @@
         },
         "prompt": {
           "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1080p"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "start_image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
         }
       },
       "yir_parameters": {
@@ -516,52 +516,10 @@
         "max": 10
       },
       "fields": {
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
           "fal_default": "adaptive"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "1080p"
-        },
-        "file_url": {
-          "kind": "unsupported",
-          "note": "Yir does not accept this file input"
-        },
-        "enable_prompt_expansion": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "web_url": {
-          "kind": "unsupported",
-          "note": "Yir does not accept web page input"
-        },
-        "reference_image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": false
-        },
-        "reference_video_urls": {
-          "kind": "unsupported",
-          "note": "Yir alibaba/wan-3.0 reference mode does not accept reference_video files"
-        },
-        "reference_audio_urls": {
-          "kind": "unsupported",
-          "note": "Yir alibaba/wan-3.0 reference mode does not accept reference_audio files"
-        },
-        "enable_thinking": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "audio": {
           "kind": "default_only",
@@ -572,8 +530,50 @@
           "param": "duration",
           "fal_default": 5
         },
+        "enable_prompt_expansion": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "enable_thinking": {
+          "kind": "default_only",
+          "fal_default": false
+        },
+        "file_url": {
+          "kind": "unsupported",
+          "note": "Yir does not accept this file input"
+        },
         "prompt": {
           "kind": "prompt"
+        },
+        "reference_audio_urls": {
+          "kind": "unsupported",
+          "note": "Yir alibaba/wan-3.0 reference mode does not accept reference_audio files"
+        },
+        "reference_image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": false
+        },
+        "reference_video_urls": {
+          "kind": "unsupported",
+          "note": "Yir alibaba/wan-3.0 reference mode does not accept reference_video files"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1080p"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "web_url": {
+          "kind": "unsupported",
+          "note": "Yir does not accept web page input"
         }
       },
       "yir_parameters": {
@@ -633,31 +633,10 @@
         "max": 0
       },
       "fields": {
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
           "fal_default": "adaptive"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "1080p"
-        },
-        "enable_prompt_expansion": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "enable_thinking": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "audio": {
           "kind": "default_only",
@@ -668,8 +647,29 @@
           "param": "duration",
           "fal_default": 5
         },
+        "enable_prompt_expansion": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "enable_thinking": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "prompt": {
           "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1080p"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -739,30 +739,18 @@
         }
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "auto"
+        },
+        "bitrate_mode": {
+          "kind": "default_only",
+          "fal_default": "standard"
+        },
         "codec": {
           "kind": "default_only",
           "fal_default": "auto"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
-        },
-        "image_url": {
-          "kind": "reference",
-          "role": "first_frame",
-          "required": true
-        },
-        "generate_audio": {
-          "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
-        },
-        "end_user_id": {
-          "kind": "metadata"
         },
         "duration": {
           "kind": "param",
@@ -774,14 +762,26 @@
           "role": "last_frame",
           "required": false
         },
-        "bitrate_mode": {
-          "kind": "default_only",
-          "fal_default": "standard"
+        "end_user_id": {
+          "kind": "metadata"
         },
-        "aspect_ratio": {
+        "generate_audio": {
           "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
         }
       },
       "yir_parameters": {
@@ -837,9 +837,41 @@
         "max": 3
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "auto"
+        },
+        "audio_urls": {
+          "kind": "reference",
+          "role": "reference_audio",
+          "required": false
+        },
+        "bitrate_mode": {
+          "kind": "default_only",
+          "fal_default": "standard"
+        },
         "codec": {
           "kind": "default_only",
           "fal_default": "auto"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "auto"
+        },
+        "end_user_id": {
+          "kind": "metadata"
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": false
         },
         "prompt": {
           "kind": "prompt"
@@ -849,42 +881,10 @@
           "param": "resolution",
           "fal_default": "720p"
         },
-        "image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": false
-        },
-        "generate_audio": {
-          "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
-        },
-        "end_user_id": {
-          "kind": "metadata"
-        },
         "video_urls": {
           "kind": "reference",
           "role": "reference_video",
           "required": false
-        },
-        "bitrate_mode": {
-          "kind": "default_only",
-          "fal_default": "standard"
-        },
-        "duration": {
-          "kind": "param",
-          "param": "duration",
-          "fal_default": "auto"
-        },
-        "audio_urls": {
-          "kind": "reference",
-          "role": "reference_audio",
-          "required": false
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
         }
       },
       "yir_parameters": {
@@ -940,26 +940,18 @@
         "max": 0
       },
       "fields": {
-        "codec": {
-          "kind": "default_only",
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
           "fal_default": "auto"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
-        },
-        "generate_audio": {
-          "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
         },
         "bitrate_mode": {
           "kind": "default_only",
           "fal_default": "standard"
+        },
+        "codec": {
+          "kind": "default_only",
+          "fal_default": "auto"
         },
         "duration": {
           "kind": "param",
@@ -969,10 +961,18 @@
         "end_user_id": {
           "kind": "metadata"
         },
-        "aspect_ratio": {
+        "generate_audio": {
           "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
         }
       },
       "yir_parameters": {
@@ -1038,30 +1038,18 @@
         }
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "auto"
+        },
+        "bitrate_mode": {
+          "kind": "default_only",
+          "fal_default": "standard"
+        },
         "codec": {
           "kind": "default_only",
           "fal_default": "auto"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
-        },
-        "image_url": {
-          "kind": "reference",
-          "role": "first_frame",
-          "required": true
-        },
-        "generate_audio": {
-          "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
-        },
-        "end_user_id": {
-          "kind": "metadata"
         },
         "duration": {
           "kind": "param",
@@ -1073,14 +1061,26 @@
           "role": "last_frame",
           "required": false
         },
-        "bitrate_mode": {
-          "kind": "default_only",
-          "fal_default": "standard"
+        "end_user_id": {
+          "kind": "metadata"
         },
-        "aspect_ratio": {
+        "generate_audio": {
           "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
         }
       },
       "yir_parameters": {
@@ -1150,30 +1150,14 @@
         }
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "auto"
+        },
         "codec": {
           "kind": "default_only",
           "fal_default": "auto"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
-        },
-        "image_url": {
-          "kind": "reference",
-          "role": "first_frame",
-          "required": true
-        },
-        "generate_audio": {
-          "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
-        },
-        "end_user_id": {
-          "kind": "metadata"
         },
         "duration": {
           "kind": "param",
@@ -1185,21 +1169,33 @@
           "role": "last_frame",
           "required": false
         },
-        "aspect_ratio": {
+        "end_user_id": {
+          "kind": "metadata"
+        },
+        "generate_audio": {
           "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
         }
       },
       "yir_parameters": {
         "duration": {
-          "values": [
-            5,
-            10
-          ],
           "default": 5,
-          "minimum": 5,
-          "maximum": 10
+          "minimum": 4,
+          "maximum": 15
         },
         "resolution": {
           "values": [
@@ -1243,9 +1239,37 @@
         "max": 3
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "auto"
+        },
+        "audio_urls": {
+          "kind": "reference",
+          "role": "reference_audio",
+          "required": false
+        },
         "codec": {
           "kind": "default_only",
           "fal_default": "auto"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "auto"
+        },
+        "end_user_id": {
+          "kind": "metadata"
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": false
         },
         "prompt": {
           "kind": "prompt"
@@ -1255,49 +1279,17 @@
           "param": "resolution",
           "fal_default": "720p"
         },
-        "image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": false
-        },
-        "generate_audio": {
-          "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
-        },
-        "end_user_id": {
-          "kind": "metadata"
-        },
-        "duration": {
-          "kind": "param",
-          "param": "duration",
-          "fal_default": "auto"
-        },
         "video_urls": {
           "kind": "reference",
           "role": "reference_video",
           "required": false
-        },
-        "audio_urls": {
-          "kind": "reference",
-          "role": "reference_audio",
-          "required": false
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
         }
       },
       "yir_parameters": {
         "duration": {
-          "values": [
-            5,
-            10
-          ],
           "default": 5,
-          "minimum": 5,
-          "maximum": 10
+          "minimum": 4,
+          "maximum": 15
         },
         "resolution": {
           "values": [
@@ -1341,10 +1333,10 @@
         "max": 0
       },
       "fields": {
-        "generate_audio": {
+        "aspect_ratio": {
           "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
+          "param": "aspect_ratio",
+          "fal_default": "auto"
         },
         "codec": {
           "kind": "default_only",
@@ -1355,32 +1347,28 @@
           "param": "duration",
           "fal_default": "auto"
         },
-        "resolution": {
+        "end_user_id": {
+          "kind": "metadata"
+        },
+        "generate_audio": {
           "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
+          "param": "generate_audio",
+          "fal_default": true
         },
         "prompt": {
           "kind": "prompt"
         },
-        "end_user_id": {
-          "kind": "metadata"
-        },
-        "aspect_ratio": {
+        "resolution": {
           "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
+          "param": "resolution",
+          "fal_default": "720p"
         }
       },
       "yir_parameters": {
         "duration": {
-          "values": [
-            5,
-            10
-          ],
           "default": 5,
-          "minimum": 5,
-          "maximum": 10
+          "minimum": 4,
+          "maximum": 15
         },
         "resolution": {
           "values": [
@@ -1438,9 +1426,41 @@
         }
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "auto"
+        },
+        "audio_urls": {
+          "kind": "reference",
+          "role": "reference_audio",
+          "required": false
+        },
+        "bitrate_mode": {
+          "kind": "default_only",
+          "fal_default": "standard"
+        },
         "codec": {
           "kind": "default_only",
           "fal_default": "auto"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "auto"
+        },
+        "end_user_id": {
+          "kind": "metadata"
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": false
         },
         "prompt": {
           "kind": "prompt"
@@ -1450,42 +1470,10 @@
           "param": "resolution",
           "fal_default": "720p"
         },
-        "image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": false
-        },
-        "generate_audio": {
-          "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
-        },
-        "end_user_id": {
-          "kind": "metadata"
-        },
         "video_urls": {
           "kind": "reference",
           "role": "reference_video",
           "required": false
-        },
-        "bitrate_mode": {
-          "kind": "default_only",
-          "fal_default": "standard"
-        },
-        "duration": {
-          "kind": "param",
-          "param": "duration",
-          "fal_default": "auto"
-        },
-        "audio_urls": {
-          "kind": "reference",
-          "role": "reference_audio",
-          "required": false
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
         }
       },
       "yir_parameters": {
@@ -1545,26 +1533,18 @@
         "max": 0
       },
       "fields": {
-        "codec": {
-          "kind": "default_only",
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
           "fal_default": "auto"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
-        },
-        "generate_audio": {
-          "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
         },
         "bitrate_mode": {
           "kind": "default_only",
           "fal_default": "standard"
+        },
+        "codec": {
+          "kind": "default_only",
+          "fal_default": "auto"
         },
         "duration": {
           "kind": "param",
@@ -1574,10 +1554,18 @@
         "end_user_id": {
           "kind": "metadata"
         },
-        "aspect_ratio": {
+        "generate_audio": {
           "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
         }
       },
       "yir_parameters": {
@@ -1647,31 +1635,22 @@
         }
       },
       "fields": {
-        "codec": {
-          "kind": "default_only",
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
           "fal_default": "auto"
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "image_url": {
-          "kind": "reference",
-          "role": "first_frame",
-          "required": true
-        },
-        "generate_audio": {
-          "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
         },
         "bitrate_mode": {
           "kind": "default_only",
           "fal_default": "standard"
+        },
+        "codec": {
+          "kind": "default_only",
+          "fal_default": "auto"
+        },
+        "draft": {
+          "kind": "default_only",
+          "fal_default": false
         },
         "duration": {
           "kind": "param",
@@ -1683,17 +1662,26 @@
           "role": "last_frame",
           "required": false
         },
-        "draft": {
-          "kind": "default_only",
-          "fal_default": false
-        },
         "end_user_id": {
           "kind": "metadata"
         },
-        "aspect_ratio": {
+        "generate_audio": {
           "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
         }
       },
       "yir_parameters": {
@@ -1749,66 +1737,66 @@
         }
       },
       "fields": {
-        "end_user_id": {
-          "kind": "metadata"
-        },
-        "codec": {
-          "kind": "default_only",
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
           "fal_default": "auto"
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": false
-        },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "generate_audio": {
-          "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
-        },
-        "task": {
-          "kind": "default_only",
-          "fal_default": "reference"
-        },
-        "bitrate_mode": {
-          "kind": "default_only",
-          "fal_default": "standard"
-        },
-        "video_urls": {
-          "kind": "reference",
-          "role": "reference_video",
-          "required": false
-        },
-        "duration": {
-          "kind": "param",
-          "param": "duration",
-          "fal_default": "auto"
-        },
-        "draft": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "audio_urls": {
           "kind": "reference",
           "role": "reference_audio",
           "required": false
         },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
+        "bitrate_mode": {
+          "kind": "default_only",
+          "fal_default": "standard"
+        },
+        "codec": {
+          "kind": "default_only",
           "fal_default": "auto"
+        },
+        "draft": {
+          "kind": "default_only",
+          "fal_default": false
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "auto"
+        },
+        "end_user_id": {
+          "kind": "metadata"
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": false
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "task": {
+          "kind": "default_only",
+          "fal_default": "reference"
+        },
+        "video_urls": {
+          "kind": "reference",
+          "role": "reference_video",
+          "required": false
         }
       },
       "yir_parameters": {
@@ -1863,26 +1851,22 @@
         "max": 0
       },
       "fields": {
-        "codec": {
-          "kind": "default_only",
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
           "fal_default": "auto"
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "generate_audio": {
-          "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
         },
         "bitrate_mode": {
           "kind": "default_only",
           "fal_default": "standard"
+        },
+        "codec": {
+          "kind": "default_only",
+          "fal_default": "auto"
+        },
+        "draft": {
+          "kind": "default_only",
+          "fal_default": false
         },
         "duration": {
           "kind": "param",
@@ -1892,14 +1876,18 @@
         "end_user_id": {
           "kind": "metadata"
         },
-        "draft": {
-          "kind": "default_only",
-          "fal_default": false
-        },
-        "aspect_ratio": {
+        "generate_audio": {
           "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
         }
       },
       "yir_parameters": {
@@ -1957,33 +1945,33 @@
         "max": 14
       },
       "fields": {
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
         },
-        "num_images": {
-          "kind": "output_count"
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "auto_2K"
         },
         "image_urls": {
           "kind": "reference",
           "role": "reference_image",
           "required": true
         },
-        "image_size": {
-          "kind": "image_size",
-          "fal_default": "auto_2K"
+        "max_images": {
+          "kind": "default_only",
+          "fal_default": 1
+        },
+        "num_images": {
+          "kind": "output_count"
         },
         "prompt": {
           "kind": "prompt"
         },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "max_images": {
-          "kind": "default_only",
-          "fal_default": 1
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -2025,10 +2013,17 @@
         "max": 0
       },
       "fields": {
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "auto_2K"
+        },
+        "max_images": {
+          "kind": "default_only",
+          "fal_default": 1
         },
         "num_images": {
           "kind": "output_count"
@@ -2036,21 +2031,14 @@
         "prompt": {
           "kind": "prompt"
         },
-        "image_size": {
-          "kind": "image_size",
-          "fal_default": "auto_2K"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
         "return_byteplus_urls": {
           "kind": "default_only",
           "fal_default": false
         },
-        "max_images": {
-          "kind": "default_only",
-          "fal_default": 1
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -2092,15 +2080,9 @@
         "max": 10
       },
       "fields": {
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "jpeg",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
-        "image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": true
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
         },
         "enhance_prompt_mode": {
           "kind": "default_only",
@@ -2110,20 +2092,26 @@
           "kind": "image_size",
           "fal_default": "auto_2K"
         },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
         },
         "num_images": {
           "kind": "output_count"
         },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "jpeg",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
         "prompt": {
           "kind": "prompt"
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -2184,33 +2172,33 @@
         "max": 0
       },
       "fields": {
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "enhance_prompt_mode": {
+          "kind": "default_only",
+          "fal_default": "standard"
+        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "auto_2K"
         },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "prompt": {
-          "kind": "prompt"
+        "num_images": {
+          "kind": "output_count"
         },
         "output_format": {
           "kind": "delivery",
           "fal_default": "jpeg",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
-        "enhance_prompt_mode": {
-          "kind": "default_only",
-          "fal_default": "standard"
+        "prompt": {
+          "kind": "prompt"
         },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "num_images": {
-          "kind": "output_count"
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -2286,35 +2274,17 @@
           "param": "aspect_ratio",
           "fal_default": "16:9"
         },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "seed": {
+        "camera_fixed": {
           "kind": "default_only",
-          "fal_default": null
-        },
-        "image_url": {
-          "kind": "reference",
-          "role": "first_frame",
-          "required": true
+          "fal_default": false
         },
         "duration": {
           "kind": "param",
           "param": "duration",
           "fal_default": "5"
         },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
-        },
         "enable_safety_checker": {
           "kind": "default_only",
-          "fal_default": true
-        },
-        "generate_audio": {
-          "kind": "param",
-          "param": "generate_audio",
           "fal_default": true
         },
         "end_image_url": {
@@ -2322,9 +2292,27 @@
           "role": "last_frame",
           "required": false
         },
-        "camera_fixed": {
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        },
+        "seed": {
           "kind": "default_only",
-          "fal_default": false
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -2381,22 +2369,14 @@
           "param": "aspect_ratio",
           "fal_default": "16:9"
         },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "seed": {
+        "camera_fixed": {
           "kind": "default_only",
-          "fal_default": null
+          "fal_default": false
         },
         "duration": {
           "kind": "param",
           "param": "duration",
           "fal_default": "5"
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
         },
         "enable_safety_checker": {
           "kind": "default_only",
@@ -2407,9 +2387,17 @@
           "param": "generate_audio",
           "fal_default": true
         },
-        "camera_fixed": {
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        },
+        "seed": {
           "kind": "default_only",
-          "fal_default": false
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -2461,30 +2449,6 @@
         "max": 10
       },
       "fields": {
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": true
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "max_images": {
-          "kind": "default_only",
-          "fal_default": 1
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "num_images": {
-          "kind": "output_count"
-        },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
@@ -2495,6 +2459,30 @@
             "height": 2048,
             "width": 2048
           }
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "max_images": {
+          "kind": "default_only",
+          "fal_default": 1
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -2536,16 +2524,9 @@
         "max": 0
       },
       "fields": {
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "num_images": {
-          "kind": "output_count"
-        },
-        "prompt": {
-          "kind": "prompt"
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
         },
         "image_size": {
           "kind": "image_size",
@@ -2554,17 +2535,24 @@
             "width": 2048
           }
         },
+        "max_images": {
+          "kind": "default_only",
+          "fal_default": 1
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
         "seed": {
           "kind": "default_only",
           "fal_default": null
         },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "max_images": {
-          "kind": "default_only",
-          "fal_default": 1
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -2605,18 +2593,9 @@
         "max": 0
       },
       "fields": {
-        "prompt": {
-          "kind": "prompt"
-        },
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "jpeg",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
         },
         "guidance_scale": {
           "kind": "default_only",
@@ -2626,21 +2605,30 @@
           "kind": "image_size",
           "fal_default": "landscape_4_3"
         },
-        "seed": {
+        "num_inference_steps": {
           "kind": "default_only",
-          "fal_default": null
+          "fal_default": 28
         },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "jpeg",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "safety_tolerance": {
           "kind": "default_only",
           "fal_default": "2"
         },
-        "num_inference_steps": {
+        "seed": {
           "kind": "default_only",
-          "fal_default": 28
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -2682,34 +2670,34 @@
         "max": 0
       },
       "fields": {
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "landscape_4_3"
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
         },
         "output_format": {
           "kind": "delivery",
           "fal_default": "jpeg",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
+        "prompt": {
+          "kind": "prompt"
         },
         "safety_tolerance": {
           "kind": "default_only",
           "fal_default": "2"
         },
-        "prompt": {
-          "kind": "prompt"
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -2747,34 +2735,34 @@
         "max": 0
       },
       "fields": {
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "landscape_4_3"
+        },
         "output_format": {
           "kind": "delivery",
           "fal_default": "jpeg",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
         "prompt": {
           "kind": "prompt"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
         },
         "safety_tolerance": {
           "kind": "default_only",
           "fal_default": "2"
         },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "sync_mode": {
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "image_size": {
-          "kind": "image_size",
-          "fal_default": "landscape_4_3"
         }
       },
       "yir_parameters": {
@@ -2811,18 +2799,13 @@
         "max": 8
       },
       "fields": {
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "auto"
         },
         "image_urls": {
           "kind": "reference",
@@ -2841,9 +2824,14 @@
           "kind": "default_only",
           "fal_default": "2"
         },
-        "image_size": {
-          "kind": "image_size",
-          "fal_default": "auto"
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -2880,47 +2868,47 @@
         "max": 4
       },
       "fields": {
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "jpeg",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
-        "num_images": {
-          "kind": "output_count"
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": null
         },
         "enhance_prompt": {
           "kind": "default_only",
           "fal_default": false
         },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": null
+        "guidance_scale": {
+          "kind": "default_only",
+          "fal_default": 3.5
         },
         "image_url": {
           "kind": "reference",
           "role": "reference_image",
           "required": true
         },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
+        "num_images": {
+          "kind": "output_count"
         },
-        "guidance_scale": {
-          "kind": "default_only",
-          "fal_default": 3.5
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "jpeg",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "safety_tolerance": {
           "kind": "default_only",
           "fal_default": "2"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -2961,42 +2949,42 @@
         "max": 0
       },
       "fields": {
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "jpeg",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
-        "num_images": {
-          "kind": "output_count"
-        },
-        "enhance_prompt": {
-          "kind": "default_only",
-          "fal_default": false
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
           "fal_default": "1:1"
         },
-        "seed": {
+        "enhance_prompt": {
           "kind": "default_only",
-          "fal_default": null
+          "fal_default": false
         },
         "guidance_scale": {
           "kind": "default_only",
           "fal_default": 3.5
         },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "jpeg",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
         "safety_tolerance": {
           "kind": "default_only",
           "fal_default": "2"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -3037,37 +3025,37 @@
         "max": 0
       },
       "fields": {
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "jpeg",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
-        "num_images": {
-          "kind": "output_count"
-        },
         "enhance_prompt": {
           "kind": "default_only",
           "fal_default": false
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
         },
         "image_size": {
           "kind": "image_size",
           "fal_default": "landscape_4_3"
         },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "jpeg",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "safety_tolerance": {
           "kind": "default_only",
           "fal_default": "2"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -3104,42 +3092,33 @@
         "max": 0
       },
       "fields": {
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "jpeg",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
-        "num_images": {
-          "kind": "output_count"
-        },
-        "image_prompt_strength": {
-          "kind": "default_only",
-          "fal_default": 0.1
-        },
-        "enhance_prompt": {
-          "kind": "default_only",
-          "fal_default": false
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
           "fal_default": "16:9"
         },
+        "enhance_prompt": {
+          "kind": "default_only",
+          "fal_default": false
+        },
+        "image_prompt_strength": {
+          "kind": "default_only",
+          "fal_default": 0.1
+        },
         "image_url": {
           "kind": "unsupported",
           "note": "Yir bfl/flux-pro-1.1-ultra text mode does not accept reference_image files"
         },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "jpeg",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "raw": {
           "kind": "default_only",
@@ -3148,6 +3127,15 @@
         "safety_tolerance": {
           "kind": "default_only",
           "fal_default": "2"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -3184,45 +3172,45 @@
         "max": 0
       },
       "fields": {
+        "acceleration": {
+          "kind": "default_only",
+          "fal_default": "none"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "guidance_scale": {
+          "kind": "default_only",
+          "fal_default": 3.5
+        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "landscape_4_3"
         },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
+        "num_images": {
+          "kind": "output_count"
         },
-        "prompt": {
-          "kind": "prompt"
+        "num_inference_steps": {
+          "kind": "default_only",
+          "fal_default": 4
         },
         "output_format": {
           "kind": "delivery",
           "fal_default": "jpeg",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
+        "prompt": {
+          "kind": "prompt"
         },
-        "num_inference_steps": {
+        "seed": {
           "kind": "default_only",
-          "fal_default": 4
+          "fal_default": null
         },
         "sync_mode": {
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "num_images": {
-          "kind": "output_count"
-        },
-        "acceleration": {
-          "kind": "default_only",
-          "fal_default": "none"
-        },
-        "guidance_scale": {
-          "kind": "default_only",
-          "fal_default": 3.5
         }
       },
       "yir_parameters": {
@@ -3259,30 +3247,30 @@
           "kind": "default_only",
           "fal_default": "auto"
         },
-        "quality": {
-          "kind": "param",
-          "param": "quality",
-          "fal_default": "high"
-        },
-        "num_images": {
-          "kind": "output_count"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "1024x1024"
         },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        "num_images": {
+          "kind": "output_count"
         },
         "output_format": {
           "kind": "delivery",
           "fal_default": "png",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "quality": {
+          "kind": "param",
+          "param": "quality",
+          "fal_default": "high"
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -3324,42 +3312,42 @@
         "max": 15
       },
       "fields": {
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "png",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        "background": {
+          "kind": "default_only",
+          "fal_default": "auto"
         },
-        "quality": {
-          "kind": "param",
-          "param": "quality",
-          "fal_default": "high"
-        },
-        "prompt": {
-          "kind": "prompt"
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "auto"
         },
         "image_urls": {
           "kind": "reference",
           "role": "reference_image",
           "required": true
         },
-        "background": {
-          "kind": "default_only",
-          "fal_default": "auto"
-        },
         "input_fidelity": {
           "kind": "default_only",
           "fal_default": "high"
-        },
-        "num_images": {
-          "kind": "output_count"
         },
         "mask_image_url": {
           "kind": "unsupported",
           "note": "Yir does not support mask inpainting"
         },
-        "image_size": {
-          "kind": "image_size",
-          "fal_default": "auto"
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "quality": {
+          "kind": "param",
+          "param": "quality",
+          "fal_default": "high"
         },
         "sync_mode": {
           "kind": "delivery",
@@ -3406,20 +3394,16 @@
         "max": 15
       },
       "fields": {
-        "num_images": {
-          "kind": "output_count"
+        "background": {
+          "kind": "default_only",
+          "fal_default": "auto"
         },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
         },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "background": {
-          "kind": "default_only",
+        "image_size": {
+          "kind": "image_size",
           "fal_default": "auto"
         },
         "image_urls": {
@@ -3427,26 +3411,30 @@
           "role": "reference_image",
           "required": true
         },
+        "input_fidelity": {
+          "kind": "default_only",
+          "fal_default": "high"
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
         "output_format": {
           "kind": "delivery",
           "fal_default": "png",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
-        "input_fidelity": {
-          "kind": "default_only",
-          "fal_default": "high"
+        "prompt": {
+          "kind": "prompt"
         },
         "quality": {
           "kind": "param",
           "param": "quality",
           "fal_default": "auto"
         },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "image_size": {
-          "kind": "image_size",
-          "fal_default": "auto"
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -3488,26 +3476,20 @@
         "max": 0
       },
       "fields": {
-        "num_images": {
-          "kind": "output_count"
+        "background": {
+          "kind": "default_only",
+          "fal_default": "auto"
         },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
         },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "background": {
-          "kind": "default_only",
+        "image_size": {
+          "kind": "image_size",
           "fal_default": "auto"
         },
-        "quality": {
-          "kind": "param",
-          "param": "quality",
-          "fal_default": "auto"
+        "num_images": {
+          "kind": "output_count"
         },
         "output_format": {
           "kind": "delivery",
@@ -3517,9 +3499,15 @@
         "prompt": {
           "kind": "prompt"
         },
-        "image_size": {
-          "kind": "image_size",
+        "quality": {
+          "kind": "param",
+          "param": "quality",
           "fal_default": "auto"
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -3566,10 +3554,10 @@
         "max": 0
       },
       "fields": {
-        "generate_audio": {
+        "aspect_ratio": {
           "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
         },
         "cfg_scale": {
           "kind": "default_only",
@@ -3580,21 +3568,21 @@
           "param": "duration",
           "fal_default": "5"
         },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
+        },
         "negative_prompt": {
           "kind": "default_only",
           "fal_default": "blur, distort, and low quality"
         },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "16:9"
-        },
         "prompt": {
           "kind": "prompt"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
         }
       },
       "yir_parameters": {
@@ -3664,43 +3652,43 @@
           "param": "duration",
           "fal_default": "5"
         },
-        "end_image_url": {
-          "kind": "reference",
-          "role": "last_frame",
-          "required": false
-        },
         "elements": {
           "kind": "unsupported",
           "note": "Yir does not support element inputs"
         },
-        "shot_type": {
+        "enable_safety_checker": {
           "kind": "default_only",
-          "fal_default": "customize"
+          "fal_default": true
         },
-        "prompt": {
-          "kind": "prompt"
+        "end_image_url": {
+          "kind": "reference",
+          "role": "last_frame",
+          "required": false
         },
         "generate_audio": {
           "kind": "param",
           "param": "generate_audio",
           "fal_default": true
         },
+        "multi_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "negative_prompt": {
           "kind": "default_only",
           "fal_default": "blur, distort, and low quality"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
         },
         "start_image_url": {
           "kind": "reference",
           "role": "first_frame",
           "required": true
-        },
-        "multi_prompt": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
         }
       },
       "yir_parameters": {
@@ -3755,6 +3743,11 @@
         "max": 0
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
         "cfg_scale": {
           "kind": "default_only",
           "fal_default": 0.5
@@ -3764,34 +3757,29 @@
           "param": "duration",
           "fal_default": "5"
         },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "16:9"
-        },
-        "shot_type": {
+        "enable_safety_checker": {
           "kind": "default_only",
-          "fal_default": "customize"
-        },
-        "prompt": {
-          "kind": "prompt"
+          "fal_default": true
         },
         "generate_audio": {
           "kind": "param",
           "param": "generate_audio",
           "fal_default": true
         },
-        "negative_prompt": {
-          "kind": "default_only",
-          "fal_default": "blur, distort, and low quality"
-        },
         "multi_prompt": {
           "kind": "default_only",
           "fal_default": null
         },
-        "enable_safety_checker": {
+        "negative_prompt": {
           "kind": "default_only",
-          "fal_default": true
+          "fal_default": "blur, distort, and low quality"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
         }
       },
       "yir_parameters": {
@@ -3865,43 +3853,43 @@
           "param": "duration",
           "fal_default": "5"
         },
-        "end_image_url": {
-          "kind": "reference",
-          "role": "last_frame",
-          "required": false
-        },
         "elements": {
           "kind": "unsupported",
           "note": "Yir does not support element inputs"
         },
-        "shot_type": {
+        "enable_safety_checker": {
           "kind": "default_only",
-          "fal_default": "customize"
+          "fal_default": true
         },
-        "prompt": {
-          "kind": "prompt"
+        "end_image_url": {
+          "kind": "reference",
+          "role": "last_frame",
+          "required": false
         },
         "generate_audio": {
           "kind": "param",
           "param": "generate_audio",
           "fal_default": true
         },
+        "multi_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "negative_prompt": {
           "kind": "default_only",
           "fal_default": "blur, distort, and low quality"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
         },
         "start_image_url": {
           "kind": "reference",
           "role": "first_frame",
           "required": true
-        },
-        "multi_prompt": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
         }
       },
       "yir_parameters": {
@@ -3956,6 +3944,11 @@
         "max": 0
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
         "cfg_scale": {
           "kind": "default_only",
           "fal_default": 0.5
@@ -3965,34 +3958,29 @@
           "param": "duration",
           "fal_default": "5"
         },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "16:9"
-        },
-        "shot_type": {
+        "enable_safety_checker": {
           "kind": "default_only",
-          "fal_default": "customize"
-        },
-        "prompt": {
-          "kind": "prompt"
+          "fal_default": true
         },
         "generate_audio": {
           "kind": "param",
           "param": "generate_audio",
           "fal_default": true
         },
-        "negative_prompt": {
-          "kind": "default_only",
-          "fal_default": "blur, distort, and low quality"
-        },
         "multi_prompt": {
           "kind": "default_only",
           "fal_default": null
         },
-        "enable_safety_checker": {
+        "negative_prompt": {
           "kind": "default_only",
-          "fal_default": true
+          "fal_default": "blur, distort, and low quality"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
         }
       },
       "yir_parameters": {
@@ -4047,17 +4035,17 @@
         "max": 1
       },
       "fields": {
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
         "prompt": {
           "kind": "prompt"
         },
         "prompt_optimizer": {
           "kind": "default_only",
           "fal_default": true
-        },
-        "image_url": {
-          "kind": "reference",
-          "role": "first_frame",
-          "required": true
         }
       },
       "yir_parameters": {
@@ -4106,13 +4094,6 @@
         "max": 1
       },
       "fields": {
-        "prompt": {
-          "kind": "prompt"
-        },
-        "prompt_optimizer": {
-          "kind": "default_only",
-          "fal_default": true
-        },
         "duration": {
           "kind": "param",
           "param": "duration",
@@ -4122,6 +4103,13 @@
           "kind": "reference",
           "role": "first_frame",
           "required": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "prompt_optimizer": {
+          "kind": "default_only",
+          "fal_default": true
         }
       },
       "yir_parameters": {
@@ -4170,17 +4158,17 @@
         "max": 1
       },
       "fields": {
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
         "prompt": {
           "kind": "prompt"
         },
         "prompt_optimizer": {
           "kind": "default_only",
           "fal_default": true
-        },
-        "image_url": {
-          "kind": "reference",
-          "role": "first_frame",
-          "required": true
         }
       },
       "yir_parameters": {
@@ -4229,14 +4217,14 @@
         "max": 0
       },
       "fields": {
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
         "prompt": {
           "kind": "prompt"
         },
         "prompt_optimizer": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
         }
@@ -4287,13 +4275,6 @@
         "max": 1
       },
       "fields": {
-        "prompt": {
-          "kind": "prompt"
-        },
-        "prompt_optimizer": {
-          "kind": "default_only",
-          "fal_default": true
-        },
         "duration": {
           "kind": "param",
           "param": "duration",
@@ -4303,6 +4284,13 @@
           "kind": "reference",
           "role": "first_frame",
           "required": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "prompt_optimizer": {
+          "kind": "default_only",
+          "fal_default": true
         }
       },
       "yir_parameters": {
@@ -4351,21 +4339,21 @@
         "max": 0
       },
       "fields": {
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "6"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
         "prompt": {
           "kind": "prompt"
         },
         "prompt_optimizer": {
           "kind": "default_only",
           "fal_default": true
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "duration": {
-          "kind": "param",
-          "param": "duration",
-          "fal_default": "6"
         }
       },
       "yir_parameters": {
@@ -4414,22 +4402,25 @@
         "max": 0
       },
       "fields": {
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "png",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
           "fal_default": "1:1"
         },
-        "prompt": {
-          "kind": "prompt"
-        },
         "limit_generations": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "safety_tolerance": {
           "kind": "default_only",
@@ -4443,9 +4434,6 @@
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "num_images": {
-          "kind": "output_count"
         }
       },
       "yir_parameters": {
@@ -4487,10 +4475,30 @@
         "max": 0
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "auto"
+        },
+        "enable_web_search": {
+          "kind": "param",
+          "param": "web_search",
+          "fal_default": false
+        },
+        "limit_generations": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
         "output_format": {
           "kind": "delivery",
           "fal_default": "png",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "resolution": {
           "kind": "param",
@@ -4501,42 +4509,22 @@
           "kind": "default_only",
           "fal_default": "4"
         },
-        "system_prompt": {
+        "seed": {
           "kind": "default_only",
-          "fal_default": ""
-        },
-        "num_images": {
-          "kind": "output_count"
+          "fal_default": null
         },
         "sync_mode": {
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
         },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
-        },
-        "seed": {
+        "system_prompt": {
           "kind": "default_only",
-          "fal_default": null
-        },
-        "enable_web_search": {
-          "kind": "param",
-          "param": "web_search",
-          "fal_default": false
+          "fal_default": ""
         },
         "thinking_level": {
           "kind": "default_only",
           "fal_default": null
-        },
-        "limit_generations": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "prompt": {
-          "kind": "prompt"
         }
       },
       "yir_parameters": {
@@ -4600,33 +4588,6 @@
         "max": 14
       },
       "fields": {
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "png",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "1K"
-        },
-        "enable_web_search": {
-          "kind": "param",
-          "param": "web_search",
-          "fal_default": false
-        },
-        "thinking_level": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "video_url": {
-          "kind": "unsupported",
-          "note": "Yir google/nano-banana-2 image mode does not accept reference_video files"
-        },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
@@ -4636,25 +4597,10 @@
           "kind": "unsupported",
           "note": "Yir google/nano-banana-2 image mode does not accept reference_audio files"
         },
-        "pdf_url": {
-          "kind": "unsupported",
-          "note": "Yir does not accept PDF input"
-        },
-        "safety_tolerance": {
-          "kind": "default_only",
-          "fal_default": "4"
-        },
-        "num_images": {
-          "kind": "output_count"
-        },
-        "system_prompt": {
-          "kind": "default_only",
-          "fal_default": ""
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        "enable_web_search": {
+          "kind": "param",
+          "param": "web_search",
+          "fal_default": false
         },
         "image_urls": {
           "kind": "reference",
@@ -4665,8 +4611,50 @@
           "kind": "default_only",
           "fal_default": true
         },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "pdf_url": {
+          "kind": "unsupported",
+          "note": "Yir does not accept PDF input"
+        },
         "prompt": {
           "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1K"
+        },
+        "safety_tolerance": {
+          "kind": "default_only",
+          "fal_default": "4"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "system_prompt": {
+          "kind": "default_only",
+          "fal_default": ""
+        },
+        "thinking_level": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "video_url": {
+          "kind": "unsupported",
+          "note": "Yir google/nano-banana-2 image mode does not accept reference_video files"
         }
       },
       "yir_parameters": {
@@ -4730,43 +4718,6 @@
         "max": 0
       },
       "fields": {
-        "num_images": {
-          "kind": "output_count"
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "1K"
-        },
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "png",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "limit_generations": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "system_prompt": {
-          "kind": "default_only",
-          "fal_default": ""
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "safety_tolerance": {
-          "kind": "default_only",
-          "fal_default": "4"
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
@@ -4775,6 +4726,43 @@
         "enable_web_search": {
           "kind": "default_only",
           "fal_default": false
+        },
+        "limit_generations": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1K"
+        },
+        "safety_tolerance": {
+          "kind": "default_only",
+          "fal_default": "4"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "system_prompt": {
+          "kind": "default_only",
+          "fal_default": ""
         }
       },
       "yir_parameters": {
@@ -4819,52 +4807,52 @@
         "max": 14
       },
       "fields": {
-        "num_images": {
-          "kind": "output_count"
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
           "fal_default": "auto"
         },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "1K"
-        },
-        "seed": {
+        "enable_web_search": {
           "kind": "default_only",
-          "fal_default": null
-        },
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "png",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
-        "limit_generations": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "prompt": {
-          "kind": "prompt"
+          "fal_default": false
         },
         "image_urls": {
           "kind": "reference",
           "role": "reference_image",
           "required": true
         },
-        "sync_mode": {
+        "limit_generations": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
           "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1K"
         },
         "safety_tolerance": {
           "kind": "default_only",
           "fal_default": "4"
         },
-        "enable_web_search": {
+        "seed": {
           "kind": "default_only",
-          "fal_default": false
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         },
         "system_prompt": {
           "kind": "default_only",
@@ -4913,11 +4901,6 @@
         "max": 3
       },
       "fields": {
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "png",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
@@ -4932,6 +4915,17 @@
           "kind": "default_only",
           "fal_default": true
         },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
         "safety_tolerance": {
           "kind": "default_only",
           "fal_default": "4"
@@ -4940,16 +4934,10 @@
           "kind": "default_only",
           "fal_default": null
         },
-        "prompt": {
-          "kind": "prompt"
-        },
         "sync_mode": {
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "num_images": {
-          "kind": "output_count"
         }
       },
       "yir_parameters": {
@@ -4991,6 +4979,14 @@
         "max": 0
       },
       "fields": {
+        "colors": {
+          "kind": "default_only",
+          "fal_default": []
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "square_hd"
@@ -5001,14 +4997,6 @@
         "style": {
           "kind": "default_only",
           "fal_default": "realistic_image"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": false
-        },
-        "colors": {
-          "kind": "default_only",
-          "fal_default": []
         },
         "style_id": {
           "kind": "default_only",
@@ -5049,13 +5037,31 @@
         "max": 0
       },
       "fields": {
-        "prompt": {
-          "kind": "prompt"
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "auto_fix": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "8s"
         },
         "generate_audio": {
           "kind": "param",
           "param": "generate_audio",
           "fal_default": true
+        },
+        "negative_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "resolution": {
           "kind": "param",
@@ -5066,27 +5072,9 @@
           "kind": "default_only",
           "fal_default": "4"
         },
-        "duration": {
-          "kind": "param",
-          "param": "duration",
-          "fal_default": "8s"
-        },
         "seed": {
           "kind": "default_only",
           "fal_default": null
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "16:9"
-        },
-        "negative_prompt": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "auto_fix": {
-          "kind": "default_only",
-          "fal_default": true
         }
       },
       "yir_parameters": {
@@ -5144,13 +5132,31 @@
         "max": 0
       },
       "fields": {
-        "prompt": {
-          "kind": "prompt"
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "auto_fix": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "8s"
         },
         "generate_audio": {
           "kind": "param",
           "param": "generate_audio",
           "fal_default": true
+        },
+        "negative_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "resolution": {
           "kind": "param",
@@ -5161,27 +5167,9 @@
           "kind": "default_only",
           "fal_default": "4"
         },
-        "duration": {
-          "kind": "param",
-          "param": "duration",
-          "fal_default": "8s"
-        },
         "seed": {
           "kind": "default_only",
           "fal_default": null
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "16:9"
-        },
-        "negative_prompt": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "auto_fix": {
-          "kind": "default_only",
-          "fal_default": true
         }
       },
       "yir_parameters": {
@@ -5234,31 +5222,24 @@
         "max": 1
       },
       "fields": {
-        "prompt": {
-          "kind": "prompt"
-        },
-        "generate_audio": {
+        "aspect_ratio": {
           "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
+          "param": "aspect_ratio",
+          "fal_default": "auto"
         },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
-        },
-        "safety_tolerance": {
+        "auto_fix": {
           "kind": "default_only",
-          "fal_default": "4"
+          "fal_default": false
         },
         "duration": {
           "kind": "param",
           "param": "duration",
           "fal_default": "8s"
         },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
         },
         "image_url": {
           "kind": "reference",
@@ -5269,14 +5250,21 @@
           "kind": "default_only",
           "fal_default": null
         },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
+        "prompt": {
+          "kind": "prompt"
         },
-        "auto_fix": {
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        },
+        "safety_tolerance": {
           "kind": "default_only",
-          "fal_default": false
+          "fal_default": "4"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -5329,31 +5317,24 @@
         "max": 1
       },
       "fields": {
-        "prompt": {
-          "kind": "prompt"
-        },
-        "generate_audio": {
+        "aspect_ratio": {
           "kind": "param",
-          "param": "generate_audio",
-          "fal_default": true
+          "param": "aspect_ratio",
+          "fal_default": "auto"
         },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
-        },
-        "safety_tolerance": {
+        "auto_fix": {
           "kind": "default_only",
-          "fal_default": "4"
+          "fal_default": false
         },
         "duration": {
           "kind": "param",
           "param": "duration",
           "fal_default": "8s"
         },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
         },
         "image_url": {
           "kind": "reference",
@@ -5364,14 +5345,21 @@
           "kind": "default_only",
           "fal_default": null
         },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
+        "prompt": {
+          "kind": "prompt"
         },
-        "auto_fix": {
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        },
+        "safety_tolerance": {
           "kind": "default_only",
-          "fal_default": false
+          "fal_default": "4"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -5444,20 +5432,13 @@
         "max": 0
       },
       "fields": {
-        "image_size": {
-          "kind": "image_size",
-          "fal_default": "square_hd"
-        },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "square_hd"
         },
         "negative_prompt": {
           "kind": "default_only",
@@ -5470,6 +5451,13 @@
           "kind": "delivery",
           "fal_default": "jpeg",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -5520,49 +5508,49 @@
         }
       },
       "fields": {
-        "resolution": {
+        "aspect_ratio": {
           "kind": "param",
-          "param": "resolution",
-          "fal_default": "1080p"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "reference_image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": false
-        },
-        "multi_shots": {
-          "kind": "default_only",
-          "fal_default": false
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
         },
         "duration": {
           "kind": "param",
           "param": "duration",
           "fal_default": 5
         },
-        "seed": {
+        "enable_safety_checker": {
           "kind": "default_only",
-          "fal_default": null
+          "fal_default": true
         },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "16:9"
+        "multi_shots": {
+          "kind": "default_only",
+          "fal_default": false
         },
         "negative_prompt": {
           "kind": "default_only",
           "fal_default": null
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "reference_image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": false
         },
         "reference_video_urls": {
           "kind": "reference",
           "role": "reference_video",
           "required": false
         },
-        "prompt": {
-          "kind": "prompt"
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1080p"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -5611,20 +5599,13 @@
         "max": 0
       },
       "fields": {
-        "image_size": {
-          "kind": "image_size",
-          "fal_default": "square_hd"
-        },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "square_hd"
         },
         "negative_prompt": {
           "kind": "default_only",
@@ -5637,6 +5618,13 @@
           "kind": "delivery",
           "fal_default": "jpeg",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -5676,9 +5664,31 @@
         "max": 0
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "audio_url": {
+          "kind": "unsupported",
+          "note": "Yir alibaba/wan-2.7 text mode does not accept reference_audio files"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
+        },
         "enable_prompt_expansion": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "negative_prompt": {
+          "kind": "default_only",
+          "fal_default": null
         },
         "prompt": {
           "kind": "prompt"
@@ -5691,28 +5701,6 @@
         "seed": {
           "kind": "default_only",
           "fal_default": null
-        },
-        "audio_url": {
-          "kind": "unsupported",
-          "note": "Yir alibaba/wan-2.7 text mode does not accept reference_audio files"
-        },
-        "negative_prompt": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "duration": {
-          "kind": "param",
-          "param": "duration",
-          "fal_default": 5
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "16:9"
         }
       },
       "yir_parameters": {
@@ -5761,10 +5749,6 @@
         "max": 0
       },
       "fields": {
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
         "acceleration": {
           "kind": "default_only",
           "fal_default": "regular"
@@ -5772,6 +5756,21 @@
         "enable_prompt_expansion": {
           "kind": "default_only",
           "fal_default": false
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "landscape_4_3"
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "num_inference_steps": {
+          "kind": "default_only",
+          "fal_default": 8
         },
         "output_format": {
           "kind": "delivery",
@@ -5781,25 +5780,14 @@
         "prompt": {
           "kind": "prompt"
         },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "sync_mode": {
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "image_size": {
-          "kind": "image_size",
-          "fal_default": "landscape_4_3"
-        },
-        "num_inference_steps": {
-          "kind": "default_only",
-          "fal_default": 8
-        },
-        "num_images": {
-          "kind": "output_count"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
         }
       },
       "yir_parameters": {
@@ -5844,6 +5832,11 @@
         "max": 1
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
         "duration": {
           "kind": "param",
           "param": "duration",
@@ -5853,18 +5846,13 @@
           "kind": "unsupported",
           "note": "Yir google/gemini-omni-1.1-flash image mode does not accept last_frame files"
         },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "16:9"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
         "image_url": {
           "kind": "reference",
           "role": "first_frame",
           "required": true
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "resolution": {
           "kind": "param",
@@ -5916,15 +5904,20 @@
         "max": 3
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
         "duration": {
           "kind": "param",
           "param": "duration",
           "fal_default": 8
         },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "16:9"
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": false
         },
         "prompt": {
           "kind": "prompt"
@@ -5937,11 +5930,6 @@
           "kind": "param",
           "param": "resolution",
           "fal_default": "720p"
-        },
-        "image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": false
         }
       },
       "yir_parameters": {
@@ -5988,15 +5976,15 @@
         "max": 0
       },
       "fields": {
-        "duration": {
-          "kind": "param",
-          "param": "duration",
-          "fal_default": 8
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
           "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 8
         },
         "prompt": {
           "kind": "prompt"
@@ -6051,22 +6039,31 @@
         "max": 0
       },
       "fields": {
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "png",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
-        "num_images": {
-          "kind": "output_count"
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "auto"
         },
         "limit_generations": {
           "kind": "default_only",
           "fal_default": true
         },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
         "prompt": {
           "kind": "prompt"
         },
-        "thinking_level": {
+        "safety_tolerance": {
+          "kind": "default_only",
+          "fal_default": "4"
+        },
+        "seed": {
           "kind": "default_only",
           "fal_default": null
         },
@@ -6075,22 +6072,13 @@
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
         },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
-        },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
         "system_prompt": {
           "kind": "default_only",
           "fal_default": ""
         },
-        "safety_tolerance": {
+        "thinking_level": {
           "kind": "default_only",
-          "fal_default": "4"
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -6132,6 +6120,39 @@
         "max": 0
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "auto"
+        },
+        "enable_web_search": {
+          "kind": "default_only",
+          "fal_default": false
+        },
+        "limit_generations": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1K"
+        },
+        "safety_tolerance": {
+          "kind": "default_only",
+          "fal_default": "4"
+        },
         "seed": {
           "kind": "default_only",
           "fal_default": null
@@ -6141,46 +6162,13 @@
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
         },
-        "safety_tolerance": {
-          "kind": "default_only",
-          "fal_default": "4"
-        },
-        "num_images": {
-          "kind": "output_count"
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "1K"
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "thinking_level": {
-          "kind": "default_only",
-          "fal_default": "medium"
-        },
-        "limit_generations": {
-          "kind": "default_only",
-          "fal_default": true
-        },
         "system_prompt": {
           "kind": "default_only",
           "fal_default": ""
         },
-        "enable_web_search": {
+        "thinking_level": {
           "kind": "default_only",
-          "fal_default": false
-        },
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "png",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+          "fal_default": "medium"
         }
       },
       "yir_parameters": {
@@ -6229,23 +6217,10 @@
         "max": 14
       },
       "fields": {
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "png",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
-        "resolution": {
+        "aspect_ratio": {
           "kind": "param",
-          "param": "resolution",
-          "fal_default": "1K"
-        },
-        "pdf_url": {
-          "kind": "unsupported",
-          "note": "Yir does not accept PDF input"
-        },
-        "thinking_level": {
-          "kind": "default_only",
-          "fal_default": "medium"
+          "param": "aspect_ratio",
+          "fal_default": "auto"
         },
         "enable_web_search": {
           "kind": "default_only",
@@ -6256,41 +6231,54 @@
           "role": "reference_image",
           "required": false
         },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "safety_tolerance": {
-          "kind": "default_only",
-          "fal_default": "4"
-        },
-        "video_url": {
-          "kind": "unsupported",
-          "note": "Yir google/nano-banana-2.1 image mode does not accept reference_video files"
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "system_prompt": {
-          "kind": "default_only",
-          "fal_default": ""
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
         "limit_generations": {
           "kind": "default_only",
           "fal_default": true
         },
         "num_images": {
           "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "pdf_url": {
+          "kind": "unsupported",
+          "note": "Yir does not accept PDF input"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1K"
+        },
+        "safety_tolerance": {
+          "kind": "default_only",
+          "fal_default": "4"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "system_prompt": {
+          "kind": "default_only",
+          "fal_default": ""
+        },
+        "thinking_level": {
+          "kind": "default_only",
+          "fal_default": "medium"
+        },
+        "video_url": {
+          "kind": "unsupported",
+          "note": "Yir google/nano-banana-2.1 image mode does not accept reference_video files"
         }
       },
       "yir_parameters": {
@@ -6344,6 +6332,11 @@
         "max": 0
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": null
+        },
         "num_images": {
           "kind": "output_count"
         },
@@ -6352,18 +6345,13 @@
           "fal_default": "webp",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
+        "prompt": {
+          "kind": "prompt"
+        },
         "sync_mode": {
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -6406,49 +6394,49 @@
         }
       },
       "fields": {
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "target_audio_url": {
-          "kind": "unsupported",
-          "note": "Yir does not support lip-sync to target audio"
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
         },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
-        },
-        "image_url": {
-          "kind": "reference",
-          "role": "first_frame",
-          "required": false
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "768P"
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "prompt_expansion_mode": {
-          "kind": "default_only",
-          "fal_default": "balanced"
-        },
-        "prompt": {
-          "kind": "prompt"
         },
         "end_image_url": {
           "kind": "reference",
           "role": "last_frame",
           "required": false
         },
-        "duration": {
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": false
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "prompt_expansion_mode": {
+          "kind": "default_only",
+          "fal_default": "balanced"
+        },
+        "resolution": {
           "kind": "param",
-          "param": "duration",
-          "fal_default": 5
+          "param": "resolution",
+          "fal_default": "768P"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "target_audio_url": {
+          "kind": "unsupported",
+          "note": "Yir does not support lip-sync to target audio"
         }
       },
       "yir_parameters": {
@@ -6493,44 +6481,44 @@
         "max": 0
       },
       "fields": {
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
           "fal_default": "16:9"
         },
-        "target_audio_url": {
-          "kind": "unsupported",
-          "note": "Yir does not support lip-sync to target audio"
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
         },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "prompt_expansion_mode": {
+          "kind": "default_only",
+          "fal_default": "balanced"
         },
         "resolution": {
           "kind": "param",
           "param": "resolution",
           "fal_default": "768P"
         },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "sync_mode": {
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
         },
-        "prompt_expansion_mode": {
-          "kind": "default_only",
-          "fal_default": "balanced"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "duration": {
-          "kind": "param",
-          "param": "duration",
-          "fal_default": 5
+        "target_audio_url": {
+          "kind": "unsupported",
+          "note": "Yir does not support lip-sync to target audio"
         }
       },
       "yir_parameters": {
@@ -6590,41 +6578,19 @@
         }
       },
       "fields": {
-        "target_audio_url": {
-          "kind": "unsupported",
-          "note": "Yir does not support lip-sync to target audio"
-        },
-        "prompt_expansion_mode": {
-          "kind": "default_only",
-          "fal_default": "balanced"
-        },
-        "end_image_url": {
-          "kind": "reference",
-          "role": "last_frame",
-          "required": false
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "2K"
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
         "duration": {
           "kind": "param",
           "param": "duration",
           "fal_default": 5
         },
-        "seed": {
+        "enable_safety_checker": {
           "kind": "default_only",
-          "fal_default": null
+          "fal_default": true
+        },
+        "end_image_url": {
+          "kind": "reference",
+          "role": "last_frame",
+          "required": false
         },
         "image_url": {
           "kind": "reference",
@@ -6633,6 +6599,28 @@
         },
         "prompt": {
           "kind": "prompt"
+        },
+        "prompt_expansion_mode": {
+          "kind": "default_only",
+          "fal_default": "balanced"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "2K"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "target_audio_url": {
+          "kind": "unsupported",
+          "note": "Yir does not support lip-sync to target audio"
         }
       },
       "yir_parameters": {
@@ -6691,27 +6679,35 @@
         }
       },
       "fields": {
-        "prompt_expansion_mode": {
-          "kind": "default_only",
-          "fal_default": "balanced"
-        },
-        "resolution": {
+        "aspect_ratio": {
           "kind": "param",
-          "param": "resolution",
-          "fal_default": "2K"
+          "param": "aspect_ratio",
+          "fal_default": "adaptive"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
         },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
         },
-        "reference_image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": false
+        "prompt": {
+          "kind": "prompt"
+        },
+        "prompt_expansion_mode": {
+          "kind": "default_only",
+          "fal_default": "balanced"
         },
         "reference_audio_urls": {
           "kind": "reference",
           "role": "reference_audio",
+          "required": false
+        },
+        "reference_image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
           "required": false
         },
         "reference_video_urls": {
@@ -6719,10 +6715,10 @@
           "role": "reference_video",
           "required": false
         },
-        "duration": {
+        "resolution": {
           "kind": "param",
-          "param": "duration",
-          "fal_default": 5
+          "param": "resolution",
+          "fal_default": "2K"
         },
         "seed": {
           "kind": "default_only",
@@ -6732,14 +6728,6 @@
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "adaptive"
-        },
-        "prompt": {
-          "kind": "prompt"
         }
       },
       "yir_parameters": {
@@ -6790,9 +6778,22 @@
         "max": 0
       },
       "fields": {
-        "target_audio_url": {
-          "kind": "unsupported",
-          "note": "Yir does not support lip-sync to target audio"
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "prompt_expansion_mode": {
           "kind": "default_only",
@@ -6803,31 +6804,18 @@
           "param": "resolution",
           "fal_default": "2K"
         },
-        "enable_safety_checker": {
+        "seed": {
           "kind": "default_only",
-          "fal_default": true
+          "fal_default": null
         },
         "sync_mode": {
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
         },
-        "duration": {
-          "kind": "param",
-          "param": "duration",
-          "fal_default": 5
-        },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "16:9"
-        },
-        "prompt": {
-          "kind": "prompt"
+        "target_audio_url": {
+          "kind": "unsupported",
+          "note": "Yir does not support lip-sync to target audio"
         }
       },
       "yir_parameters": {
@@ -6877,38 +6865,38 @@
         "max": 0
       },
       "fields": {
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
         "background": {
           "kind": "default_only",
           "fal_default": "auto"
         },
-        "num_images": {
-          "kind": "output_count"
-        },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
         },
         "image_size": {
           "kind": "image_size",
           "fal_default": "landscape_4_3"
+        },
+        "num_images": {
+          "kind": "output_count"
         },
         "output_format": {
           "kind": "delivery",
           "fal_default": "png",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
+        "prompt": {
+          "kind": "prompt"
+        },
         "quality": {
           "kind": "param",
           "param": "quality",
           "fal_default": "high"
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -6965,33 +6953,41 @@
         "max": 16
       },
       "fields": {
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "png",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
         "background": {
           "kind": "default_only",
           "fal_default": "auto"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "image_size": {
-          "kind": "image_size",
-          "fal_default": "auto"
-        },
-        "mask_url": {
-          "kind": "unsupported",
-          "note": "Yir does not support mask inpainting"
         },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
         },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "auto"
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "mask_url": {
+          "kind": "unsupported",
+          "note": "Yir does not support mask inpainting"
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
         "output_compression": {
           "kind": "default_only",
           "fal_default": null
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "quality": {
           "kind": "param",
@@ -7002,14 +6998,6 @@
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "num_images": {
-          "kind": "output_count"
-        },
-        "image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": true
         }
       },
       "yir_parameters": {
@@ -7072,21 +7060,16 @@
           "kind": "default_only",
           "fal_default": "auto"
         },
-        "prompt": {
-          "kind": "prompt"
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
         },
         "image_size": {
           "kind": "image_size",
           "fal_default": "landscape_4_3"
         },
-        "quality": {
-          "kind": "param",
-          "param": "quality",
-          "fal_default": "high"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
+        "num_images": {
+          "kind": "output_count"
         },
         "output_compression": {
           "kind": "default_only",
@@ -7097,13 +7080,18 @@
           "fal_default": "png",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "quality": {
+          "kind": "param",
+          "param": "quality",
+          "fal_default": "high"
+        },
         "sync_mode": {
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "num_images": {
-          "kind": "output_count"
         }
       },
       "yir_parameters": {
@@ -7162,33 +7150,41 @@
         "max": 16
       },
       "fields": {
-        "output_format": {
-          "kind": "delivery",
-          "fal_default": "png",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
-        },
         "background": {
           "kind": "default_only",
           "fal_default": "auto"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "image_size": {
-          "kind": "image_size",
-          "fal_default": "auto"
-        },
-        "mask_url": {
-          "kind": "unsupported",
-          "note": "Yir does not support mask inpainting"
         },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
         },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "auto"
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "mask_url": {
+          "kind": "unsupported",
+          "note": "Yir does not support mask inpainting"
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
         "output_compression": {
           "kind": "default_only",
           "fal_default": null
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "quality": {
           "kind": "param",
@@ -7199,14 +7195,6 @@
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "num_images": {
-          "kind": "output_count"
-        },
-        "image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": true
         }
       },
       "yir_parameters": {
@@ -7269,21 +7257,16 @@
           "kind": "default_only",
           "fal_default": "auto"
         },
-        "prompt": {
-          "kind": "prompt"
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
         },
         "image_size": {
           "kind": "image_size",
           "fal_default": "landscape_4_3"
         },
-        "quality": {
-          "kind": "param",
-          "param": "quality",
-          "fal_default": "high"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
+        "num_images": {
+          "kind": "output_count"
         },
         "output_compression": {
           "kind": "default_only",
@@ -7294,13 +7277,18 @@
           "fal_default": "png",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "quality": {
+          "kind": "param",
+          "param": "quality",
+          "fal_default": "high"
+        },
         "sync_mode": {
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "num_images": {
-          "kind": "output_count"
         }
       },
       "yir_parameters": {
@@ -7359,15 +7347,16 @@
         "max": 16
       },
       "fields": {
+        "background": {
+          "kind": "default_only",
+          "fal_default": "auto"
+        },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
         },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "background": {
-          "kind": "default_only",
+        "image_size": {
+          "kind": "image_size",
           "fal_default": "auto"
         },
         "image_urls": {
@@ -7375,31 +7364,30 @@
           "role": "reference_image",
           "required": true
         },
-        "num_images": {
-          "kind": "output_count"
-        },
         "mask_url": {
           "kind": "unsupported",
           "note": "Yir does not support mask inpainting"
         },
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        "num_images": {
+          "kind": "output_count"
         },
         "output_format": {
           "kind": "delivery",
           "fal_default": "png",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
-        "image_size": {
-          "kind": "image_size",
-          "fal_default": "auto"
+        "prompt": {
+          "kind": "prompt"
         },
         "quality": {
           "kind": "param",
           "param": "quality",
           "fal_default": "high"
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -7456,47 +7444,47 @@
         "max": 1
       },
       "fields": {
-        "enable_prompt_expansion": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "image_url": {
-          "kind": "reference",
-          "role": "first_frame",
-          "required": true
+        "audio_url": {
+          "kind": "unsupported",
+          "note": "Yir alibaba/wan-2.6 image mode does not accept reference_audio files"
         },
         "duration": {
           "kind": "param",
           "param": "duration",
           "fal_default": "5"
         },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "1080p"
-        },
-        "audio_url": {
-          "kind": "unsupported",
-          "note": "Yir alibaba/wan-2.6 image mode does not accept reference_audio files"
-        },
-        "negative_prompt": {
+        "enable_prompt_expansion": {
           "kind": "default_only",
-          "fal_default": ""
+          "fal_default": true
         },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
         },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
         "multi_shots": {
           "kind": "default_only",
           "fal_default": false
+        },
+        "negative_prompt": {
+          "kind": "default_only",
+          "fal_default": ""
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1080p"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -7553,15 +7541,15 @@
         }
       },
       "fields": {
-        "video_urls": {
-          "kind": "reference",
-          "role": "reference_video",
-          "required": true
-        },
-        "resolution": {
+        "aspect_ratio": {
           "kind": "param",
-          "param": "resolution",
-          "fal_default": "1080p"
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "5"
         },
         "enable_prompt_expansion": {
           "kind": "default_only",
@@ -7575,26 +7563,26 @@
           "kind": "default_only",
           "fal_default": true
         },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "16:9"
-        },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
-        },
-        "duration": {
-          "kind": "param",
-          "param": "duration",
-          "fal_default": "5"
-        },
         "negative_prompt": {
           "kind": "default_only",
           "fal_default": ""
         },
         "prompt": {
           "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1080p"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "video_urls": {
+          "kind": "reference",
+          "role": "reference_video",
+          "required": true
         }
       },
       "yir_parameters": {
@@ -7647,13 +7635,14 @@
         "max": 0
       },
       "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
         "audio_url": {
           "kind": "unsupported",
           "note": "Yir alibaba/wan-2.6 text mode does not accept reference_audio files"
-        },
-        "seed": {
-          "kind": "default_only",
-          "fal_default": null
         },
         "duration": {
           "kind": "param",
@@ -7664,30 +7653,29 @@
           "kind": "default_only",
           "fal_default": true
         },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "16:9"
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
         },
         "multi_shots": {
           "kind": "default_only",
           "fal_default": true
         },
-        "prompt": {
-          "kind": "prompt"
-        },
         "negative_prompt": {
           "kind": "default_only",
           "fal_default": ""
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "resolution": {
           "kind": "param",
           "param": "resolution",
           "fal_default": "1080p"
         },
-        "enable_safety_checker": {
+        "seed": {
           "kind": "default_only",
-          "fal_default": true
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -7734,14 +7722,6 @@
         "max": 0
       },
       "fields": {
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
@@ -7754,15 +7734,23 @@
         "num_images": {
           "kind": "output_count"
         },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "jpeg",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
         "resolution": {
           "kind": "param",
           "param": "resolution",
           "fal_default": "1k"
         },
-        "output_format": {
+        "sync_mode": {
           "kind": "delivery",
-          "fal_default": "jpeg",
-          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -7799,27 +7787,19 @@
         "max": 1
       },
       "fields": {
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "resolution": {
+        "aspect_ratio": {
           "kind": "param",
-          "param": "resolution",
-          "fal_default": "1k"
+          "param": "aspect_ratio",
+          "fal_default": "auto"
         },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
         },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": false
         },
         "num_images": {
           "kind": "output_count"
@@ -7829,10 +7809,18 @@
           "fal_default": "jpeg",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
-        "image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": false
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1k"
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -7869,27 +7857,19 @@
         "max": 3
       },
       "fields": {
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "resolution": {
+        "aspect_ratio": {
           "kind": "param",
-          "param": "resolution",
-          "fal_default": "1k"
+          "param": "aspect_ratio",
+          "fal_default": "auto"
         },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
         },
-        "prompt": {
-          "kind": "prompt"
-        },
-        "aspect_ratio": {
-          "kind": "param",
-          "param": "aspect_ratio",
-          "fal_default": "auto"
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": false
         },
         "num_images": {
           "kind": "output_count"
@@ -7899,14 +7879,22 @@
           "fal_default": "jpeg",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
+        "prompt": {
+          "kind": "prompt"
+        },
         "quality": {
           "kind": "default_only",
           "fal_default": "medium"
         },
-        "image_urls": {
-          "kind": "reference",
-          "role": "reference_image",
-          "required": false
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1k"
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -7947,27 +7935,14 @@
         "max": 0
       },
       "fields": {
-        "sync_mode": {
-          "kind": "delivery",
-          "fal_default": false,
-          "note": "Yir always returns short-lived signed URLs, never data URIs"
-        },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "1k"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
-        "prompt": {
-          "kind": "prompt"
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
           "fal_default": "1:1"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
         },
         "num_images": {
           "kind": "output_count"
@@ -7977,10 +7952,23 @@
           "fal_default": "jpeg",
           "note": "the file format depends on the delivering channel; Yir cannot set it yet"
         },
+        "prompt": {
+          "kind": "prompt"
+        },
         "quality": {
           "kind": "param",
           "param": "quality",
           "fal_default": "medium"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1k"
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
         }
       },
       "yir_parameters": {
@@ -8027,32 +8015,32 @@
         "max": 1
       },
       "fields": {
-        "prompt": {
-          "kind": "prompt"
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
           "fal_default": "auto"
-        },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
         },
         "duration": {
           "kind": "param",
           "param": "duration",
           "fal_default": 6
         },
-        "resolution": {
-          "kind": "param",
-          "param": "resolution",
-          "fal_default": "720p"
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
         },
         "image_url": {
           "kind": "reference",
           "role": "first_frame",
           "required": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
         }
       },
       "yir_parameters": {
@@ -8112,22 +8100,22 @@
         "max": 0
       },
       "fields": {
-        "prompt": {
-          "kind": "prompt"
-        },
         "aspect_ratio": {
           "kind": "param",
           "param": "aspect_ratio",
           "fal_default": "16:9"
         },
-        "enable_safety_checker": {
-          "kind": "default_only",
-          "fal_default": true
-        },
         "duration": {
           "kind": "param",
           "param": "duration",
           "fal_default": 6
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "prompt": {
+          "kind": "prompt"
         },
         "resolution": {
           "kind": "param",
