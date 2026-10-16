@@ -2469,8 +2469,8 @@
         "image_size": {
           "kind": "image_size",
           "fal_default": {
-            "height": 2048,
-            "width": 2048
+            "width": 2048,
+            "height": 2048
           }
         },
         "image_urls": {
@@ -2544,8 +2544,8 @@
         "image_size": {
           "kind": "image_size",
           "fal_default": {
-            "height": 2048,
-            "width": 2048
+            "width": 2048,
+            "height": 2048
           }
         },
         "max_images": {
@@ -5428,8 +5428,108 @@
     },
     "fal-ai/wan/v2.7/image-to-video": {
       "model": "alibaba/wan-2.7",
+      "operation": "generate_video",
       "input_type": "image",
-      "unsupported": "Yir alibaba/wan-2.7 has no image input mode, so fal-ai/wan/v2.7/image-to-video cannot be migrated yet"
+      "references": {
+        "min": 1,
+        "max": 3,
+        "by_role": {
+          "first_frame": {
+            "minimum": 1,
+            "maximum": 1
+          },
+          "last_frame": {
+            "minimum": 0,
+            "maximum": 1
+          },
+          "reference_audio": {
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "fields": {
+        "audio_url": {
+          "kind": "reference",
+          "role": "reference_audio",
+          "required": false
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
+        },
+        "enable_prompt_expansion": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "end_image_url": {
+          "kind": "reference",
+          "role": "last_frame",
+          "required": false
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": false
+        },
+        "negative_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1080p"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "video_url": {
+          "kind": "unsupported",
+          "note": "Yir alibaba/wan-2.7 image mode does not accept reference_video files"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 2,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p"
+          ],
+          "default": "1080p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "adaptive"
+          ],
+          "default": "adaptive"
+        },
+        "generate_audio": {
+          "values": [
+            true
+          ],
+          "default": true
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
     },
     "fal-ai/wan/v2.7/pro/edit": {
       "model": "alibaba/wan-2.7-image-pro",
