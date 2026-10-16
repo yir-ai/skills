@@ -192,8 +192,9 @@ function inputMode(operation, refs) {
   if (!refs.length || (operation !== "generate_image" && operation !== "generate_video")) return "text";
   if (operation === "generate_image") return "image";
   const framed = refs.some(r => r.role === "first_frame" || r.role === "last_frame");
-  const referenced = refs.some(r => r.role.startsWith("reference_"));
-  if (framed && referenced) throw new UsageError("video references cannot mix first_frame/last_frame with reference_* roles");
+  // A frame input may carry one driving audio (lip sync, e.g. alibaba/wan-2.7); other reference_* roles need reference mode.
+  const referenced = refs.some(r => r.role.startsWith("reference_") && !(framed && r.role === "reference_audio"));
+  if (framed && referenced) throw new UsageError("video references cannot mix first_frame/last_frame with reference_image/reference_video roles");
   return framed ? "image" : "reference";
 }
 

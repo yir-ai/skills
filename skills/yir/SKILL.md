@@ -80,6 +80,9 @@ node scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "..." -p durat
 # First-frame video, optional last frame
 node scripts/yir.mjs video -m <model> --prompt "..." --ref first_frame=./start.png --ref last_frame=./end.png
 
+# First frame plus driving audio (lip sync and beat-matched motion, alibaba/wan-2.7); the audio is kept as the soundtrack
+node scripts/yir.mjs video -m alibaba/wan-2.7 --prompt "she sings along to the song" --ref first_frame=./singer.png --ref reference_audio=./vocals.mp3 -p duration=5
+
 # Reference video (roles reference_image / reference_video / reference_audio)
 node scripts/yir.mjs video -m <model> --prompt "..." --ref reference_image=./character.png
 
