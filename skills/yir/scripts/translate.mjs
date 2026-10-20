@@ -27,6 +27,11 @@ export function normalizeValue(param, value, spec) {
     const adaptive = spec.values?.find(v => v === 'auto' || v === 'adaptive')
     if (adaptive) return adaptive
   }
+  if (param === 'resolution' && typeof value === 'string' && spec) {
+    // Video channels name 2K/4K by line count (FLUX 3 Video on fal: 1440p / 2160p).
+    const tier = { '1440p': '2K', '2160p': '4K' }[value.trim().toLowerCase()]
+    if (tier && allowed(spec, tier)) return tier
+  }
   if (typeof value === 'string' && spec) {
     const spelled = [...(spec.values ?? []), ...(spec.string_values ?? [])].find(
       v => typeof v === 'string' && v.toLowerCase() === value.trim().toLowerCase(),

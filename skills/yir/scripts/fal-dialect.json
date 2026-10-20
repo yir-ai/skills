@@ -783,6 +783,343 @@
         }
       }
     },
+    "blackforestlabs/flux-3-max/image-to-video": {
+      "model": "bfl/flux-3-max",
+      "operation": "generate_video",
+      "input_type": "image",
+      "references": {
+        "min": 1,
+        "max": 2,
+        "by_role": {
+          "first_frame": {
+            "minimum": 1,
+            "maximum": 1
+          },
+          "last_frame": {
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "auto"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
+        },
+        "end_image_url": {
+          "kind": "reference",
+          "role": "last_frame",
+          "required": false
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "reasoning_level": {
+          "kind": "default_only",
+          "fal_default": "high"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 5,
+          "maximum": 20
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": true
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
+    "blackforestlabs/flux-3-max/text-to-video": {
+      "model": "bfl/flux-3-max",
+      "operation": "generate_video",
+      "input_type": "text",
+      "references": {
+        "min": 0,
+        "max": 0
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "auto"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "reasoning_level": {
+          "kind": "default_only",
+          "fal_default": "high"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 5,
+          "maximum": 20
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": true
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
+    "blackforestlabs/flux-3/image-to-video": {
+      "model": "bfl/flux-3-video",
+      "operation": "generate_video",
+      "input_type": "image",
+      "references": {
+        "min": 1,
+        "max": 1,
+        "by_role": {
+          "first_frame": {
+            "minimum": 1,
+            "maximum": 1
+          }
+        }
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "auto"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "auto"
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        },
+        "safety_tolerance": {
+          "kind": "default_only",
+          "fal_default": 2
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 5,
+          "maximum": 20
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p",
+            "2K",
+            "4K"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": true
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
+    "blackforestlabs/flux-3/text-to-video": {
+      "model": "bfl/flux-3-video",
+      "operation": "generate_video",
+      "input_type": "text",
+      "references": {
+        "min": 0,
+        "max": 0
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "auto"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "auto"
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        },
+        "safety_tolerance": {
+          "kind": "default_only",
+          "fal_default": 2
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 5,
+          "maximum": 20
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p",
+            "2K",
+            "4K"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": true
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
     "bytedance/seedance-2.0/fast/image-to-video": {
       "model": "bytedance/seedance-2.0-fast",
       "operation": "generate_video",
