@@ -23,8 +23,8 @@ const REF_ROLES = new Set(["reference_image", "first_frame", "last_frame", "refe
 const SUBJECT_NAME = /^[A-Za-z][A-Za-z0-9_]{0,31}$/;
 const KINDS = ["image", "video", "music"];
 const DEFAULT_TIMEOUT = { image: 600, video: 1800, music: 900 };
-// Contract operations each command accepts: the music endpoints also run sound-effect models.
-const OPERATIONS = { image: ["generate_image"], video: ["generate_video"], music: ["generate_music", "generate_sound_effect"] };
+// Contract operations each command accepts: the music endpoints also run sound-effect and text-to-speech models.
+const OPERATIONS = { image: ["generate_image"], video: ["generate_video"], music: ["generate_music", "generate_sound_effect", "generate_speech"] };
 // Music endpoints are /v1/music/...; image and video are /v1/images/... and /v1/videos/...
 const endpoint = kind => `/v1/${kind === "music" ? "music" : `${kind}s`}`;
 
@@ -261,7 +261,7 @@ async function getContract(model) {
 }
 
 // Fills required parameters the caller omitted with the model contract defaults. Returns the contract
-// operation too: the music command runs both generate_music and generate_sound_effect models.
+// operation too: the music command runs generate_music, generate_sound_effect and generate_speech models.
 async function withDefaults(model, operation, mode, params) {
   const contract = await getContract(model);
   const accepted = OPERATIONS[operation.replace("generate_", "")] || [operation];
@@ -310,6 +310,10 @@ async function readLyrics(operation, values, parameters) {
   let lyrics = values.lyrics;
   if (values["lyrics-file"] !== undefined) {
     try { lyrics = await readFile(values["lyrics-file"], "utf8"); } catch (e) { throw new UsageError(`cannot read lyrics file ${values["lyrics-file"]}: ${e.message}`); }
+  }
+  if (operation === "generate_speech") {
+    if (lyrics !== undefined || parameters.instrumental !== undefined || parameters.lyrics_optimizer !== undefined || parameters.duration !== undefined) throw new UsageError("text-to-speech takes no lyrics, instrumental, lyrics_optimizer or duration; put the text to read aloud in --prompt and pick a voice with -p voice=ID");
+    return undefined;
   }
   if (operation === "generate_sound_effect") {
     if (lyrics !== undefined || parameters.instrumental !== undefined || parameters.lyrics_optimizer !== undefined) throw new UsageError("sound effects take no lyrics, instrumental or lyrics_optimizer; describe the sound in --prompt");

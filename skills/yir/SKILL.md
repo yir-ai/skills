@@ -1,6 +1,6 @@
 ---
 name: yir
-description: Generate and edit images, and generate videos and music, through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, make a song, instrumental track or sound effect, produce a set of images or clips for a page, deck or article in one batch, compare or pick image/video/music models and prices, check, download or cancel a Yir job by ID, or migrate existing fal (fal.ai) code to Yir. Requires YIR_API_KEY.
+description: Generate and edit images, and generate videos and music, through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, make a song, instrumental track or sound effect, read text aloud as speech (text-to-speech / voiceover), produce a set of images or clips for a page, deck or article in one batch, compare or pick image/video/music models and prices, check, download or cancel a Yir job by ID, or migrate existing fal (fal.ai) code to Yir. Requires YIR_API_KEY.
 ---
 
 # Yir image, video and music jobs
@@ -104,6 +104,10 @@ node scripts/yir.mjs music -m elevenlabs/music-v2.5 --prompt "upbeat synthwave, 
 # Sound effect (1-22 s)
 node scripts/yir.mjs music -m elevenlabs/sound-effects-v2 --prompt "heavy wooden door creaking open" --duration 4
 
+# Text-to-speech: --prompt is the exact text to read; -p voice= picks a preset voice (see Speech below)
+node scripts/yir.mjs music -m minimax/speech-2.8-hd --prompt "清晨六点，城市还没有完全醒来。" -p "voice=Chinese (Mandarin)_News_Anchor"
+node scripts/yir.mjs music -m elevenlabs/eleven-v3 --prompt "[whispers] The sea was finally quiet."
+
 # Existing jobs
 node scripts/yir.mjs job <id>                       # status, billing, result links
 node scripts/yir.mjs job <id> --wait --download     # wait, then save results
@@ -127,6 +131,15 @@ Models (check `model <id>` or `quote music` for current prices):
 - `elevenlabs/music-v2`, `elevenlabs/music-v2.5`: no custom lyrics; use `-p lyrics_optimizer=true` or `-p instrumental=true`. `--duration` 30, 60, 120, 180, 240 or 300 (default 60); $0.60 per started minute (60 s = $0.60, 300 s = $3.00).
 - `elevenlabs/sound-effects-v2`: short sound effects, `--duration` 1-22 s (default 5), no lyrics or switches. About $0.002 per second.
 - `suno/suno-v6`, `suno/suno-v6-wild` (experimental), `suno/suno-v6-mini` (efficient, may return shorter tracks): all three forms; every request makes two tracks (`n` is 2), about $0.05-0.06 per request. Suno has no official API; Yir accesses it unofficially through third-party channels. Say so when the user picks it.
+
+## Speech
+
+Text-to-speech models also run through `music`. `--prompt` is the exact text to read aloud; there are no lyrics, switches or `--duration`. `-p voice=ID` picks a preset voice of that model (omit it for the model default); the voice does not change the price. Billing is per character of the text, spaces, punctuation and audio tags included, so quote long scripts first.
+
+- `minimax/speech-2.8-hd`: strong Chinese, up to 10000 characters, $0.0001 per character ($0.10 per 1000). Voices are MiniMax system voice IDs such as `Chinese (Mandarin)_News_Anchor`, `Chinese (Mandarin)_Gentleman`, `Chinese (Mandarin)_Sweet_Lady`; default `English_expressive_narrator`.
+- `elevenlabs/eleven-v3`: expressive English and multilingual, up to 5000 characters, $0.0001 per character; audio tags such as `[whispers]`, `[laughs]` steer delivery and are billed but not spoken. Default voice `JBFqnCBsd6RMkjVDRZzb`.
+
+Only preset voices are available; voice cloning is not offered. A wrong voice ID fails the Job without a charge.
 
 There is no tempo or key control. Each delivered track is saved with its type's extension (`.mp3`, or `.wav` for Music 3); two tracks save as `<name>-1` and `<name>-2`. The measured length is `files[].duration_ms` in the summary and `durations` in the sidecar, which also records the lyrics. Tell the user the length.
 

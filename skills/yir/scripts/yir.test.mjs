@@ -20,7 +20,8 @@ async function fixture(t, jobs, state = {jobs:{}}) {
   globalThis.fetch = async (url, opts={}) => {
     const p = new URL(url).pathname;
     let data;
-    if(p.includes('/models/test/sfx')) data={operations:[{operation:'generate_sound_effect',input_modes:['text'],parameters:[{name:'duration',type:'integer',required:false,default:5,minimum:1,maximum:22},{name:'n',type:'integer',required:false,values:[1]}]}]};
+    if(p.includes('/models/test/speech')) data={operations:[{operation:'generate_speech',input_modes:['text'],parameters:[{name:'voice',type:'string',required:false,default:'English_expressive_narrator',control:'text'},{name:'n',type:'integer',required:false,values:[1]}]}]};
+    else if(p.includes('/models/test/sfx')) data={operations:[{operation:'generate_sound_effect',input_modes:['text'],parameters:[{name:'duration',type:'integer',required:false,default:5,minimum:1,maximum:22},{name:'n',type:'integer',required:false,values:[1]}]}]};
     else if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[{name:'size',type:'string',required:false,values:['3136x1344']}]},{operation:'generate_video',input_modes:['text','image','reference'],parameters:[{name:'fps',type:'integer',required:false,values:[24]}]},{operation:'generate_music',input_modes:['text'],parameters:[{name:'instrumental',type:'boolean',required:false,default:false},{name:'lyrics_optimizer',type:'boolean',required:false,default:false},{name:'duration',type:'integer',required:false,values:[30,60,120],default:60},{name:'n',type:'integer',required:false,values:[1,2]}]}]};
     else if(p.endsWith('/quotes')) { await appendFile(process.env.CALLS+'.paths',p+'\\n'); if ('max_cost' in JSON.parse(opts.body)) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',message:'max_cost is not allowed in this request.'}}),{status:400}); data=process.env.UNKNOWN_QUOTE==='1'?{primary:{amount:null},supply:{available:true}}:{expected_amount:'0.05',supply:{available:true}}; }
     else if(p.endsWith('/generations')) {
@@ -209,6 +210,16 @@ test('sound effect runs through the music command without lyrics', async t => {
  assert.deepEqual(r.calls[0],{model:'test/sfx',input:{type:'text',prompt:'test'},parameters:{duration:3},max_cost:'0.050000'});
  for (const job of [{model:'test/sfx',lyrics:'la'},{model:'test/sfx',params:{instrumental:true}}]) {
   const g=await fixture(t,['door']); await musicPlan(g,job);
+  const bad=await g.run(); assert.equal(bad.code,2); assert.equal(bad.calls.length,0);
+ }
+});
+test('text-to-speech runs through the music command with a voice and no lyrics', async t => {
+ const f=await fixture(t,['narration']); await musicPlan(f,{model:'test/speech',params:{voice:'Chinese (Mandarin)_News_Anchor'}});
+ const r=await f.run([],{MUSIC:'1'}); assert.equal(r.code,0,r.stderr);
+ assert.deepEqual(r.paths,['/v1/music/quotes','/v1/music/generations']);
+ assert.deepEqual(r.calls[0],{model:'test/speech',input:{type:'text',prompt:'test'},parameters:{voice:'Chinese (Mandarin)_News_Anchor'},max_cost:'0.050000'});
+ for (const job of [{model:'test/speech',lyrics:'la'},{model:'test/speech',params:{instrumental:true}},{model:'test/speech',duration:5}]) {
+  const g=await fixture(t,['narration']); await musicPlan(g,job);
   const bad=await g.run(); assert.equal(bad.code,2); assert.equal(bad.calls.length,0);
  }
 });
