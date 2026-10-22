@@ -227,7 +227,10 @@ test('reference_image@NAME groups photos into a subject and rejects invalid name
  const call=JSON.parse((await readFile(join(f.dir,'calls'),'utf8')).trim().split('\n')[0]);
  assert.equal(call.input.type,'reference');
  assert.deepEqual(call.input.references,[{role:'reference_image',url:'https://example.com/a.png',subject:'hero'},{role:'reference_image',url:'https://example.com/b.png',subject:'hero'}]);
- for (const bad of ['reference_video@hero=https://example.com/a.mp4','reference_image@1hero=https://example.com/a.png','reference_image@a@b=https://example.com/a.png']) {
+ await exec(process.execPath,[...base,'--ref','reference_audio@Narrator=https://example.com/n.mp3'],{env});
+ const voiceCall=JSON.parse((await readFile(join(f.dir,'calls'),'utf8')).trim().split('\n').at(-1));
+ assert.deepEqual(voiceCall.input.references,[{role:'reference_audio',url:'https://example.com/n.mp3',subject:'Narrator'}]);
+ for (const bad of ['reference_video@hero=https://example.com/a.mp4','first_frame@hero=https://example.com/a.png','reference_image@1hero=https://example.com/a.png','reference_image@a@b=https://example.com/a.png']) {
   await assert.rejects(()=>exec(process.execPath,[...base,'--ref',bad],{env}),e=>e.code===2,bad);
  }
 });
