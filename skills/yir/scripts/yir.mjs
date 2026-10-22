@@ -57,7 +57,8 @@ Generation options:
                             reference_image@NAME=PATH groups photos into character NAME (models
                             listing "subjects" under model <id>); write @NAME in the prompt.
                             reference_audio@NAME=PATH is NAME's voice, or a standalone voice when
-                            NAME has no photos (models listing "voices").
+                            NAME has no photos (models listing "voices"); reference_video@NAME=PATH
+                            makes NAME a video character (models listing "video characters").
                             Local files are uploaded through the Files API first.
   --lyrics TEXT             Music: song lyrics (lines separated by newlines, [Verse]/[Chorus] tags allowed)
   --lyrics-file PATH        Music: read the lyrics from a UTF-8 text file
@@ -182,8 +183,8 @@ function parseRefs(operation, values) {
     const i = item.indexOf("=");
     const [role, subject, extra] = (i > 0 ? item.slice(0, i) : "").split("@");
     if (!REF_ROLES.has(role) || extra !== undefined) throw new UsageError(`--ref expects role=PATH|URL with role in ${[...REF_ROLES].join(", ")}, got "${item}"`);
-    if (subject !== undefined && ((role !== "reference_image" && role !== "reference_audio") || !SUBJECT_NAME.test(subject))) {
-      throw new UsageError(`--ref reference_image@NAME=PATH or reference_audio@NAME=PATH needs NAME of letters, digits or _ starting with a letter (max 32), got "${item}"`);
+    if (subject !== undefined && ((role !== "reference_image" && role !== "reference_audio" && role !== "reference_video") || !SUBJECT_NAME.test(subject))) {
+      throw new UsageError(`--ref reference_image@NAME, reference_video@NAME or reference_audio@NAME=PATH needs NAME of letters, digits or _ starting with a letter (max 32), got "${item}"`);
     }
     refs.push({ role, src: item.slice(i + 1), ...(subject !== undefined ? { subject } : {}) });
   }
@@ -468,6 +469,7 @@ async function cmdModel(id, values) {
           s.allowed_durations && `duration ${s.allowed_durations.join("/")}`].filter(Boolean).join(", ");
         out.push(`  ${mode} subjects: up to ${s.max_subjects} characters x ${s.min_images_per_subject}-${s.max_images_per_subject} photos (--ref reference_image@NAME=PATH, @NAME in prompt)${spec ? `; ${spec}` : ""}`);
         if (s.mixed) out.push(`  ${mode} subjects mix with plain references; reference counts are plain references plus subjects`);
+        if (s.max_videos_per_subject) out.push(`  ${mode} video characters: up to ${s.max_video_subjects} (--ref reference_video@NAME=PATH, one clip each, no photos)`);
         if (s.max_audios_per_subject) out.push(`  ${mode} voices: ${s.max_audios_per_subject} per character, up to ${s.max_audio_only_subjects || 0} standalone (--ref reference_audio@NAME=PATH)`);
       }
     }
