@@ -2878,8 +2878,8 @@
         "image_size": {
           "kind": "image_size",
           "fal_default": {
-            "width": 2048,
-            "height": 2048
+            "height": 2048,
+            "width": 2048
           }
         },
         "image_urls": {
@@ -2953,8 +2953,8 @@
         "image_size": {
           "kind": "image_size",
           "fal_default": {
-            "width": 2048,
-            "height": 2048
+            "height": 2048,
+            "width": 2048
           }
         },
         "max_images": {
@@ -4048,6 +4048,9 @@
           ],
           "default": 1
         }
+      },
+      "fixed_parameters": {
+        "resolution": "1080p"
       }
     },
     "fal-ai/kling-video/v2.6/pro/text-to-video": {
@@ -4128,6 +4131,204 @@
           ],
           "default": 1
         }
+      },
+      "fixed_parameters": {
+        "resolution": "1080p"
+      }
+    },
+    "fal-ai/kling-video/v3/4k/image-to-video": {
+      "model": "klingai/kling-3.0",
+      "operation": "generate_video",
+      "input_type": "image",
+      "references": {
+        "min": 1,
+        "max": 2,
+        "by_role": {
+          "first_frame": {
+            "minimum": 1,
+            "maximum": 1
+          },
+          "last_frame": {
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "fields": {
+        "cfg_scale": {
+          "kind": "default_only",
+          "fal_default": 0.5
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "5"
+        },
+        "elements": {
+          "kind": "unsupported",
+          "note": "Yir does not support element inputs"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "end_image_url": {
+          "kind": "reference",
+          "role": "last_frame",
+          "required": false
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "multi_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "negative_prompt": {
+          "kind": "default_only",
+          "fal_default": "blur, distort, and low quality"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
+        },
+        "start_image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p",
+            "4K"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": false
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      },
+      "fixed_parameters": {
+        "resolution": "4K"
+      }
+    },
+    "fal-ai/kling-video/v3/4k/text-to-video": {
+      "model": "klingai/kling-3.0",
+      "operation": "generate_video",
+      "input_type": "text",
+      "references": {
+        "min": 0,
+        "max": 0
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "cfg_scale": {
+          "kind": "default_only",
+          "fal_default": 0.5
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "5"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": true
+        },
+        "multi_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "negative_prompt": {
+          "kind": "default_only",
+          "fal_default": "blur, distort, and low quality"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p",
+            "4K"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": false
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      },
+      "fixed_parameters": {
+        "resolution": "4K"
       }
     },
     "fal-ai/kling-video/v3/pro/image-to-video": {
@@ -4232,6 +4433,86 @@
           ],
           "default": 1
         }
+      },
+      "fixed_parameters": {
+        "resolution": "1080p"
+      }
+    },
+    "fal-ai/kling-video/v3/pro/motion-control": {
+      "model": "klingai/kling-3.0",
+      "operation": "generate_video",
+      "input_type": "reference",
+      "references": {
+        "min": 2,
+        "max": 2
+      },
+      "fields": {
+        "character_orientation": {
+          "kind": "fixed",
+          "value": "video",
+          "fal_default": null
+        },
+        "elements": {
+          "kind": "unsupported",
+          "note": "Yir does not support element inputs"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "keep_original_sound": {
+          "kind": "fixed",
+          "value": false,
+          "fal_default": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "video_url": {
+          "kind": "reference",
+          "role": "reference_video",
+          "required": true
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 30
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "generate_audio": {
+          "values": [
+            false
+          ],
+          "default": false
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      },
+      "fixed_parameters": {
+        "resolution": "1080p"
       }
     },
     "fal-ai/kling-video/v3/pro/text-to-video": {
@@ -4317,6 +4598,9 @@
           ],
           "default": 1
         }
+      },
+      "fixed_parameters": {
+        "resolution": "1080p"
       }
     },
     "fal-ai/kling-video/v3/standard/image-to-video": {
@@ -4421,6 +4705,86 @@
           ],
           "default": 1
         }
+      },
+      "fixed_parameters": {
+        "resolution": "720p"
+      }
+    },
+    "fal-ai/kling-video/v3/standard/motion-control": {
+      "model": "klingai/kling-3.0",
+      "operation": "generate_video",
+      "input_type": "reference",
+      "references": {
+        "min": 2,
+        "max": 2
+      },
+      "fields": {
+        "character_orientation": {
+          "kind": "fixed",
+          "value": "video",
+          "fal_default": null
+        },
+        "elements": {
+          "kind": "unsupported",
+          "note": "Yir does not support element inputs"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "keep_original_sound": {
+          "kind": "fixed",
+          "value": false,
+          "fal_default": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "video_url": {
+          "kind": "reference",
+          "role": "reference_video",
+          "required": true
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 30
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "generate_audio": {
+          "values": [
+            false
+          ],
+          "default": false
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      },
+      "fixed_parameters": {
+        "resolution": "720p"
       }
     },
     "fal-ai/kling-video/v3/standard/text-to-video": {
@@ -4506,6 +4870,9 @@
           ],
           "default": 1
         }
+      },
+      "fixed_parameters": {
+        "resolution": "720p"
       }
     },
     "fal-ai/minimax/hailuo-2.3-fast/pro/image-to-video": {

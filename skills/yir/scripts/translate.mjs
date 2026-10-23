@@ -204,12 +204,26 @@ export function translate(dialect, endpoint, input) {
           report.push({ field: name, action: 'ignored_default', detail: 'same as the default; dropped' })
         }
         break
+      case 'fixed':
+        // Yir 对这个渠道字段只发固定值；取值不同时无法兑现。
+        if (present && !same(value, field.value)) {
+          errors.push({ field: name, reason: `Yir always sends ${JSON.stringify(field.value)} for this ${dialect.channel} option; ${JSON.stringify(value)} cannot be honoured` })
+        } else {
+          report.push({ field: name, action: 'fixed', detail: `Yir sends ${JSON.stringify(field.value)}${present ? '' : ` (${dialect.channel} default ${JSON.stringify(field.fal_default)})`}` })
+        }
+        break
       case 'unsupported':
         if (present) errors.push({ field: name, reason: field.note })
         break
       default:
         errors.push({ field: name, reason: `unknown field kind ${field.kind}` })
     }
+  }
+
+  // The endpoint itself picks some parameters (e.g. Kling standard/pro/4k = resolution tier).
+  for (const [param, value] of Object.entries(entry.fixed_parameters ?? {})) {
+    parameters[param] = value
+    report.push({ field: `(endpoint) ${param}`, action: 'endpoint_tier', detail: `set by the ${dialect.channel} endpoint: parameters.${param}=${JSON.stringify(value)}` })
   }
 
   // Yir parameters the channel has no field for run with Yir's default; list them for review.
