@@ -21,26 +21,30 @@ const EXTENSIONS = { "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".
   "video/mp4": ".mp4", "video/webm": ".webm", "video/quicktime": ".mov", "audio/mpeg": ".mp3", "audio/wav": ".wav", "audio/x-wav": ".wav", "audio/wave": ".wav" };
 const REF_ROLES = new Set(["reference_image", "first_frame", "last_frame", "reference_video", "reference_audio"]);
 const SUBJECT_NAME = /^[A-Za-z][A-Za-z0-9_]{0,31}$/;
+// "audio" is the public name and "music" its permanent alias; internally the audio kind stays "music"
+// because its requests carry operation generate_music.
 const KINDS = ["image", "video", "music"];
+const kindOf = name => (name === "audio" ? "music" : name);
 const DEFAULT_TIMEOUT = { image: 600, video: 1800, music: 900 };
-// Contract operations each command accepts: the music endpoints also run sound-effect and text-to-speech models.
+// Contract operations each command accepts: the audio endpoints run music, sound-effect and text-to-speech models.
 const OPERATIONS = { image: ["generate_image"], video: ["generate_video"], music: ["generate_music", "generate_sound_effect", "generate_speech"] };
-// Music endpoints are /v1/music/...; image and video are /v1/images/... and /v1/videos/...
-const endpoint = kind => `/v1/${kind === "music" ? "music" : `${kind}s`}`;
+// Audio endpoints are /v1/audio/...; image and video are /v1/images/... and /v1/videos/...
+const endpoint = kind => `/v1/${kind === "music" ? "audio" : `${kind}s`}`;
 
-const HELP = `yir ${VERSION} - Yir image, video and music jobs (https://gateway.yir.ai Standard API)
+const HELP = `yir ${VERSION} - Yir image, video and audio jobs (https://gateway.yir.ai Standard API)
 
 Usage:
-  node yir.mjs models [--type image|video|music]    List model IDs, input modes and labels
+  node yir.mjs models [--type image|video|audio]    List model IDs, input modes and labels
   node yir.mjs model <creator/model>                Parameters, defaults and per-spec prices
-  node yir.mjs quote <image|video|music> [generation options]
+  node yir.mjs quote <image|video|audio> [generation options]
                                                     Price and supply check; creates no Job, charges nothing
   node yir.mjs image  --model M --prompt P [options] Text-to-image, or image edit with --image
   node yir.mjs video  --model M --prompt P [options] Text/image/reference-to-video
-  node yir.mjs music  --model M --prompt P [--lyrics-file F | -p instrumental=true | -p lyrics_optimizer=true]
-                    [--duration SEC]                Song, instrumental or sound effect (mp3/wav; Suno saves two tracks)
+  node yir.mjs audio  --model M --prompt P [--lyrics-file F | -p instrumental=true | -p lyrics_optimizer=true]
+                    [--duration SEC]                Song, instrumental, sound effect or speech (mp3/wav; Suno saves
+                                                    two tracks). \`music\` is the old name and still works
   node yir.mjs batch <plan.json> [--max-total USD] [--concurrency N] [--dry-run]
-                                                    Run many image/video/music jobs from a plan; re-run resumes
+                                                    Run many image/video/audio jobs from a plan; re-run resumes
   node yir.mjs job <id> [--wait] [--download] [--out DIR]
                                                     Job status, billing and result links
   node yir.mjs cancel <id>                          Request cancellation
@@ -78,7 +82,7 @@ Generation options:
   --out DIR                 Result directory (default ./yir-output)
   --name STEM               Result file name without extension (default yir-<job id>)
   --no-wait                 Submit and print the Job ID without polling
-  --timeout SEC             Max wait (default 600 image, 1800 video, 900 music)
+  --timeout SEC             Max wait (default 600 image, 1800 video, 900 audio)
   --json                    models/model: print raw JSON
 
 Batch options:
@@ -87,7 +91,7 @@ Batch options:
   --dry-run                 Quote every job and print the total; submits nothing
   --retry-failed            Re-submit jobs that failed in an earlier run (default: keep the failure)
 
-Output: quote/image/video/music/job/cancel/batch print one JSON object on stdout; progress goes to stderr.
+Output: quote/image/video/audio/job/cancel/batch print one JSON object on stdout; progress goes to stderr.
 Each saved result gets a <name>.json sidecar with model, prompt, parameters, channel, Job ID and charge
 (plus lyrics and measured duration for audio).
 Exit codes: 0 ok, 1 API or job failure, 2 usage error, 3 wait timed out (job still running).
@@ -177,7 +181,7 @@ function parseParams(list = []) {
 
 function parseRefs(operation, values) {
   const refs = [];
-  if (operation === "generate_music" && (values.image?.length || values.ref?.length)) throw new UsageError("music takes no --image or --ref; describe the music in --prompt");
+  if (operation === "generate_music" && (values.image?.length || values.ref?.length)) throw new UsageError("audio takes no --image or --ref; describe the sound in --prompt");
   for (const src of values.image || []) refs.push({ role: operation === "generate_image" ? "reference_image" : "first_frame", src });
   for (const item of values.ref || []) {
     const i = item.indexOf("=");
@@ -261,7 +265,7 @@ async function getContract(model) {
 }
 
 // Fills required parameters the caller omitted with the model contract defaults. Returns the contract
-// operation too: the music command runs generate_music, generate_sound_effect and generate_speech models.
+// operation too: the audio command runs generate_music, generate_sound_effect and generate_speech models.
 async function withDefaults(model, operation, mode, params) {
   const contract = await getContract(model);
   const accepted = OPERATIONS[operation.replace("generate_", "")] || [operation];
@@ -441,8 +445,9 @@ function requestRecord(body, refs) {
 async function cmdModels(values) {
   const data = await api("GET", "/v1/models?include=parameters");
   if (values.json) return print(data), 0;
-  if (values.type && !KINDS.includes(values.type)) throw new UsageError("--type must be image, video or music");
-  const want = values.type ? OPERATIONS[values.type] : null;
+  const type = values.type && kindOf(values.type);
+  if (type && !KINDS.includes(type)) throw new UsageError("--type must be image, video or audio");
+  const want = type ? OPERATIONS[type] : null;
   for (const m of data.models || []) {
     const ops = (m.operations || []).filter(o => !want || want.includes(o.operation));
     if (!ops.length) continue;
@@ -493,8 +498,9 @@ async function cmdModel(id, values) {
   return 0;
 }
 
-async function cmdQuote(kind, values) {
-  if (!KINDS.includes(kind)) throw new UsageError("usage: quote <image|video|music> --model M --prompt P ...");
+async function cmdQuote(name, values) {
+  const kind = kindOf(name);
+  if (!KINDS.includes(kind)) throw new UsageError("usage: quote <image|video|audio> --model M --prompt P ...");
   const body = await buildRequest(`generate_${kind}`, values);
   print(summarizeQuote(await api("POST", `${endpoint(kind)}/quotes`, { body })));
   return 0;
@@ -598,7 +604,7 @@ async function loadPlan(file) {
     if (!NAME.test(job.name || "")) throw new UsageError(`${where}: "name" is required and may use letters, digits, '.', '_' and '-' only`);
     if (seen.has(job.name)) throw new UsageError(`${where}: duplicate name`);
     seen.add(job.name);
-    if (!KINDS.includes(job.type)) throw new UsageError(`${where}: "type" must be image, video or music`);
+    if (!KINDS.includes(kindOf(job.type))) throw new UsageError(`${where}: "type" must be image, video or audio`);
     const values = {
       model: job.model, prompt: job.prompt, lyrics: job.lyrics, duration: job.duration,
       "lyrics-file": job.lyrics_file === undefined ? undefined : resolve(base, job.lyrics_file),
@@ -607,7 +613,7 @@ async function loadPlan(file) {
       routing: job.routing === undefined ? undefined : JSON.stringify(job.routing),
     };
     if (job.max_cost !== undefined && !/^\d+(\.\d+)?$/.test(String(job.max_cost))) throw new UsageError(`${where}: max_cost must be a decimal USD amount`);
-    return { name: job.name, kind: job.type, values, params: job.params, maxCost: job.max_cost === undefined ? undefined : String(job.max_cost) };
+    return { name: job.name, kind: kindOf(job.type), values, params: job.params, maxCost: job.max_cost === undefined ? undefined : String(job.max_cost) };
   });
 }
 
@@ -860,7 +866,7 @@ async function main(argv) {
     case "quote": return cmdQuote(arg, values);
     case "image": return cmdGenerate("image", values);
     case "video": return cmdGenerate("video", values);
-    case "music": return cmdGenerate("music", values);
+    case "audio": case "music": return cmdGenerate("music", values);
     case "job": return cmdJob(arg, values);
     case "cancel": return cmdCancel(arg);
     case "batch": return cmdBatch(arg, values);

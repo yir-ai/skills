@@ -20,7 +20,8 @@ async function fixture(t, jobs, state = {jobs:{}}) {
   globalThis.fetch = async (url, opts={}) => {
     const p = new URL(url).pathname;
     let data;
-    if(p.includes('/models/test/speech')) data={operations:[{operation:'generate_speech',input_modes:['text'],parameters:[{name:'voice',type:'string',required:false,default:'English_expressive_narrator',control:'text'},{name:'n',type:'integer',required:false,values:[1]}]}]};
+    if(p==='/v1/models') data={models:[{id:'test/image',operations:[{operation:'generate_image',input_modes:['text']}]},{id:'test/speech',operations:[{operation:'generate_speech',input_modes:['text']}]},{id:'test/music',operations:[{operation:'generate_music',input_modes:['text']}]}]};
+    else if(p.includes('/models/test/speech')) data={operations:[{operation:'generate_speech',input_modes:['text'],parameters:[{name:'voice',type:'string',required:false,default:'English_expressive_narrator',control:'text'},{name:'n',type:'integer',required:false,values:[1]}]}]};
     else if(p.includes('/models/test/sfx')) data={operations:[{operation:'generate_sound_effect',input_modes:['text'],parameters:[{name:'duration',type:'integer',required:false,default:5,minimum:1,maximum:22},{name:'n',type:'integer',required:false,values:[1]}]}]};
     else if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[{name:'size',type:'string',required:false,values:['3136x1344']}]},{operation:'generate_video',input_modes:['text','image','reference'],parameters:[{name:'fps',type:'integer',required:false,values:[24]}]},{operation:'generate_music',input_modes:['text'],parameters:[{name:'instrumental',type:'boolean',required:false,default:false},{name:'lyrics_optimizer',type:'boolean',required:false,default:false},{name:'duration',type:'integer',required:false,values:[30,60,120],default:60},{name:'n',type:'integer',required:false,values:[1,2]}]}]};
     else if(p.endsWith('/quotes')) { await appendFile(process.env.CALLS+'.paths',p+'\\n'); if ('max_cost' in JSON.parse(opts.body)) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',message:'max_cost is not allowed in this request.'}}),{status:400}); data=process.env.UNKNOWN_QUOTE==='1'?{primary:{amount:null},supply:{available:true}}:{expected_amount:'0.05',supply:{available:true}}; }
@@ -168,13 +169,13 @@ test('first-frame video can omit text without synthesizing a prompt', async t =>
 
 async function musicPlan(f, job) {
  const path=join(f.dir,'plan.json'); const plan=JSON.parse(await readFile(path,'utf8'));
- plan.defaults.type='music'; plan.defaults.model='test/music'; Object.assign(plan.jobs[0],job); await writeFile(path,JSON.stringify(plan));
+ plan.defaults.type=job.type||'audio'; plan.defaults.model='test/music'; Object.assign(plan.jobs[0],job); await writeFile(path,JSON.stringify(plan));
 }
 test('music job sends file lyrics to the music endpoints and saves an mp3 with its duration', async t => {
  const f=await fixture(t,['song']); await writeFile(join(f.dir,'song.txt'),'[Verse]\r\nline one\r\n');
  await musicPlan(f,{lyrics_file:'song.txt'});
  const r=await f.run([],{MUSIC:'1'}); assert.equal(r.code,0,r.stderr);
- assert.deepEqual(r.paths,['/v1/music/quotes','/v1/music/generations']);
+ assert.deepEqual(r.paths,['/v1/audio/quotes','/v1/audio/generations']);
  assert.deepEqual(r.calls[0].input,{type:'text',prompt:'test',lyrics:'[Verse]\nline one'});
  assert.deepEqual(r.state.jobs.song.files,['song.mp3']);
  const meta=JSON.parse(await readFile(join(f.dir,'song.json'),'utf8'));
@@ -188,35 +189,44 @@ test('music lyrics rules are checked before quoting or submitting', async t => {
  const f=await fixture(t,['song']); await musicPlan(f,{params:{instrumental:true}});
  const r=await f.run([],{MUSIC:'1'}); assert.equal(r.code,0,r.stderr); assert.deepEqual(r.calls[0].input,{type:'text',prompt:'test'}); assert.deepEqual(r.calls[0].parameters,{instrumental:true});
 });
-test('music command saves the track under --name with its measured duration', async t => {
+test('models --type audio lists music and speech models; music is an alias', async t => {
+ const f=await fixture(t,['unused']);
+ const mock=join(f.dir,'mock.mjs');
+ for (const type of ['audio','music']) {
+  const r=await exec(process.execPath,['--import',pathToFileURL(mock).href,script,'models','--type',type],{env:{...process.env,YIR_API_KEY:'mock',YIR_BASE_URL:'https://mock'}});
+  assert.match(r.stdout,/test\/speech/); assert.match(r.stdout,/test\/music/); assert.doesNotMatch(r.stdout,/test\/image/);
+ }
+});
+
+test('music (old name of audio) command saves the track under --name with its measured duration', async t => {
  const f=await fixture(t,['unused']);
  const mock=join(f.dir,'mock.mjs');
  const r=await exec(process.execPath,['--import',pathToFileURL(mock).href,script,'music','-m','test/music','--prompt','lofi','--lyrics','hello','--name','track','--out',f.dir],{env:{...process.env,YIR_API_KEY:'mock',YIR_BASE_URL:'https://mock',CALLS:join(f.dir,'calls'),MUSIC:'1'}});
  const out=JSON.parse(r.stdout); assert.equal(out.files[0].duration_ms,151230); assert.match(out.files[0].path,/track\.mp3$/);
- assert.equal((await readFile(join(f.dir,'calls.paths'),'utf8')).trim(),'/v1/music/generations');
+ assert.equal((await readFile(join(f.dir,'calls.paths'),'utf8')).trim(),'/v1/audio/generations');
 });
 test('music duration from --duration and batch duration reaches parameters.duration', async t => {
  const f=await fixture(t,['long']); await musicPlan(f,{duration:120,params:{lyrics_optimizer:true}});
  const r=await f.run([],{MUSIC:'1'}); assert.equal(r.code,0,r.stderr); assert.deepEqual(r.calls[0].parameters,{lyrics_optimizer:true,duration:120});
  const mock=join(f.dir,'mock.mjs'); const env={...process.env,YIR_API_KEY:'mock',YIR_BASE_URL:'https://mock',CALLS:join(f.dir,'cli'),MUSIC:'1'};
- await exec(process.execPath,['--import',pathToFileURL(mock).href,script,'music','-m','test/music','--prompt','lofi','-p','instrumental=true','--duration','30','--out',f.dir],{env});
+ await exec(process.execPath,['--import',pathToFileURL(mock).href,script,'audio','-m','test/music','--prompt','lofi','-p','instrumental=true','--duration','30','--out',f.dir],{env});
  assert.deepEqual(JSON.parse((await readFile(join(f.dir,'cli'),'utf8')).trim()).parameters,{instrumental:true,duration:30});
  await assert.rejects(()=>exec(process.execPath,['--import',pathToFileURL(mock).href,script,'music','-m','test/music','--prompt','lofi','-p','instrumental=true','--duration','45','--out',f.dir],{env}),e=>e.code===2 && /duration=45 is not allowed/.test(e.stderr));
 });
-test('sound effect runs through the music command without lyrics', async t => {
+test('sound effect runs through the audio command without lyrics', async t => {
  const f=await fixture(t,['door']); await musicPlan(f,{model:'test/sfx',duration:3});
  const r=await f.run([],{MUSIC:'1'}); assert.equal(r.code,0,r.stderr);
- assert.deepEqual(r.paths,['/v1/music/quotes','/v1/music/generations']);
+ assert.deepEqual(r.paths,['/v1/audio/quotes','/v1/audio/generations']);
  assert.deepEqual(r.calls[0],{model:'test/sfx',input:{type:'text',prompt:'test'},parameters:{duration:3},max_cost:'0.050000'});
  for (const job of [{model:'test/sfx',lyrics:'la'},{model:'test/sfx',params:{instrumental:true}}]) {
   const g=await fixture(t,['door']); await musicPlan(g,job);
   const bad=await g.run(); assert.equal(bad.code,2); assert.equal(bad.calls.length,0);
  }
 });
-test('text-to-speech runs through the music command with a voice and no lyrics', async t => {
- const f=await fixture(t,['narration']); await musicPlan(f,{model:'test/speech',params:{voice:'Chinese (Mandarin)_News_Anchor'}});
+test('text-to-speech runs through the audio command with a voice and no lyrics; type music is an alias', async t => {
+ const f=await fixture(t,['narration']); await musicPlan(f,{type:'music',model:'test/speech',params:{voice:'Chinese (Mandarin)_News_Anchor'}});
  const r=await f.run([],{MUSIC:'1'}); assert.equal(r.code,0,r.stderr);
- assert.deepEqual(r.paths,['/v1/music/quotes','/v1/music/generations']);
+ assert.deepEqual(r.paths,['/v1/audio/quotes','/v1/audio/generations']);
  assert.deepEqual(r.calls[0],{model:'test/speech',input:{type:'text',prompt:'test'},parameters:{voice:'Chinese (Mandarin)_News_Anchor'},max_cost:'0.050000'});
  for (const job of [{model:'test/speech',lyrics:'la'},{model:'test/speech',params:{instrumental:true}},{model:'test/speech',duration:5}]) {
   const g=await fixture(t,['narration']); await musicPlan(g,job);

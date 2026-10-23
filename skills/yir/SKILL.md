@@ -1,9 +1,9 @@
 ---
 name: yir
-description: Generate and edit images, and generate videos and music, through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, make a song, instrumental track or sound effect, read text aloud as speech (text-to-speech / voiceover), produce a set of images or clips for a page, deck or article in one batch, compare or pick image/video/music models and prices, check, download or cancel a Yir job by ID, or migrate existing fal (fal.ai) code to Yir. Requires YIR_API_KEY.
+description: Generate and edit images, and generate videos and audio (music, sound effects, speech), through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, make a song, instrumental track or sound effect, read text aloud as speech (text-to-speech / voiceover), produce a set of images or clips for a page, deck or article in one batch, compare or pick image/video/audio models and prices, check, download or cancel a Yir job by ID, or migrate existing fal (fal.ai) code to Yir. Requires YIR_API_KEY.
 ---
 
-# Yir image, video and music jobs
+# Yir image, video and audio jobs
 
 All calls go through one zero-dependency script (Node.js 18+). Run it from this skill's directory:
 
@@ -26,13 +26,13 @@ Use **Gateway Key** (`YIR_API_KEY`, `yir_sk_`) for generation commands. Use a se
 
 ## Workflow
 
-1. **Pick a model.** `node scripts/yir.mjs models --type image` (or `--type video`, `--type music`) lists model IDs and input modes (`text`, `image`, `reference`). If the user named a model, use its ID as listed (`creator/model`).
+1. **Pick a model.** `node scripts/yir.mjs models --type image` (or `--type video`, `--type audio`) lists model IDs and input modes (`text`, `image`, `reference`). If the user named a model, use its ID as listed (`creator/model`).
 2. **Check parameters and prices.** `node scripts/yir.mjs model <creator/model>` shows each parameter's allowed values and default, accepted reference roles, and listed prices per spec. Omitted required parameters are filled with the defaults.
    For images, keep the lowest resolution (usually the default `1K`): it is enough for web pages, articles, chat and drafts, and 2K/4K often cost 2–5× more. Go higher only when the user asks for it; if you think the use needs it (print, large displays, heavy cropping), quote it and confirm the price with the user first.
    When exact output pixels are requested, inspect the model for optional `size` and pass `--param size=WIDTHxHEIGHT`. Never approximate a requested size with a resolution tier. Omit `resolution`/`aspect_ratio` to let the Gateway derive them from its exact-size declaration, or pass matching explicit values; conflicts are rejected. Initially only Seedream 5.0 Pro official image sizes are declared; unsupported models/channels (including video sizes) fail explicitly. If `size` is omitted, existing defaults remain unchanged.
    For an explicit video frame rate, inspect optional `fps` and pass `--param fps=24` only when declared. Initially only the official Google route for `google/veo-3.1-generate-001` declares native 24 FPS. Unsupported rates/channels are rejected without interpolation or transcoding. Omit FPS to preserve existing behavior; the Gateway must have FPS support deployed.
    First-frame video may omit `--prompt` only when the model input contract declares `prompt_optional`; initially this is the official Google Veo 3.1 route. Do not invent text. Text-only inputs still require a prompt. The Gateway enforces channel eligibility.
-3. **Quote when cost matters** (video, high resolution, or when the user asks): `node scripts/yir.mjs quote image|video|music <same options as the job>`. It creates no Job and charges nothing. Check `supply.available` and `expected_amount` (USD; it includes reference-image input charges, fall back to `price.amount` when absent). Tell the user the price before an expensive job.
+3. **Quote when cost matters** (video, high resolution, or when the user asks): `node scripts/yir.mjs quote image|video|audio <same options as the job>`. It creates no Job and charges nothing. Check `supply.available` and `expected_amount` (USD; it includes reference-image input charges, fall back to `price.amount` when absent). Tell the user the price before an expensive job.
 4. **Submit.** The script polls until the Job is terminal, downloads results to `--out` (default `./yir-output`) and prints a JSON summary with local `files[].path`, `charged_usd` and `final_provider`. Show the user the local paths.
 
 Give results meaningful names with `--name` (e.g. `--name hero-desktop`). Every saved result gets a `<name>.json` sidecar with the prompt, parameters, references, channel, Job ID and charge, so the asset can be reproduced or credited later. Keep it next to the file.
@@ -53,7 +53,7 @@ When the user needs several images or clips, write a plan file and run it as one
 }
 ```
 
-Each job takes `name` (required, unique, becomes the file name), `type` (`image`, `video` or `music`), `model`, `prompt`, `params` (merged over the defaults), `image`, `refs` (`role=path`), `lyrics` or `lyrics_file` (music only), `duration` (same as `params.duration`), `routing` and `max_cost`. Local paths are relative to the plan file.
+Each job takes `name` (required, unique, becomes the file name), `type` (`image`, `video` or `audio`), `model`, `prompt`, `params` (merged over the defaults), `image`, `refs` (`role=path`), `lyrics` or `lyrics_file` (songs only), `duration` (same as `params.duration`), `routing` and `max_cost`. Local paths are relative to the plan file.
 
 ```sh
 node scripts/yir.mjs batch plan.json --dry-run --out ./assets        # validate and quote every job; submits nothing
@@ -96,17 +96,17 @@ node scripts/yir.mjs video -m klingai/kling-3.0 --prompt "@hero hands a coffee t
 # Edit a video (Seedance 2.5): output length and aspect follow the input video
 node scripts/yir.mjs video -m bytedance/seedance-2.5 --prompt "replace the man with a woman in a red coat" --ref reference_video=./clip.mp4 -p duration=auto -p aspect_ratio=auto
 
-# Song with lyrics, instrumental, or lyrics written from the prompt (see Music below)
-node scripts/yir.mjs music -m minimax/music-2.6 --prompt "warm indie pop, female vocal, summer evening" --lyrics-file ./lyrics.txt
-node scripts/yir.mjs music -m minimax/music-2.6 --prompt "calm lo-fi piano for a product demo" -p instrumental=true
-node scripts/yir.mjs music -m elevenlabs/music-v2.5 --prompt "upbeat synthwave, male vocal" -p lyrics_optimizer=true --duration 120
+# Song with lyrics, instrumental, or lyrics written from the prompt (see Audio below)
+node scripts/yir.mjs audio -m minimax/music-2.6 --prompt "warm indie pop, female vocal, summer evening" --lyrics-file ./lyrics.txt
+node scripts/yir.mjs audio -m minimax/music-2.6 --prompt "calm lo-fi piano for a product demo" -p instrumental=true
+node scripts/yir.mjs audio -m elevenlabs/music-v2.5 --prompt "upbeat synthwave, male vocal" -p lyrics_optimizer=true --duration 120
 
 # Sound effect (1-22 s)
-node scripts/yir.mjs music -m elevenlabs/sound-effects-v2 --prompt "heavy wooden door creaking open" --duration 4
+node scripts/yir.mjs audio -m elevenlabs/sound-effects-v2 --prompt "heavy wooden door creaking open" --duration 4
 
 # Text-to-speech: --prompt is the exact text to read; -p voice= picks a preset voice (see Speech below)
-node scripts/yir.mjs music -m minimax/speech-2.8-hd --prompt "清晨六点，城市还没有完全醒来。" -p "voice=Chinese (Mandarin)_News_Anchor"
-node scripts/yir.mjs music -m elevenlabs/eleven-v3 --prompt "[whispers] The sea was finally quiet."
+node scripts/yir.mjs audio -m minimax/speech-2.8-hd --prompt "清晨六点，城市还没有完全醒来。" -p "voice=Chinese (Mandarin)_News_Anchor"
+node scripts/yir.mjs audio -m elevenlabs/eleven-v3 --prompt "[whispers] The sea was finally quiet."
 
 # Existing jobs
 node scripts/yir.mjs job <id>                       # status, billing, result links
@@ -114,17 +114,17 @@ node scripts/yir.mjs job <id> --wait --download     # wait, then save results
 node scripts/yir.mjs cancel <id>
 ```
 
-Options: `-p key=value` (repeatable), `--image` (reference_image for image jobs, first_frame for video jobs), `--ref role=src` (repeatable), `--lyrics TEXT` / `--lyrics-file PATH` (music), `--duration SEC` (same as `-p duration=SEC`), `--max-cost USD` (caps the Job's total charge), `--out DIR`, `--name STEM`, `--no-wait`, `--timeout SEC` (default 600 image, 1800 video, 900 music), `--routing JSON`.
+Options: `-p key=value` (repeatable), `--image` (reference_image for image jobs, first_frame for video jobs), `--ref role=src` (repeatable), `--lyrics TEXT` / `--lyrics-file PATH` (songs), `--duration SEC` (same as `-p duration=SEC`), `--max-cost USD` (caps the Job's total charge), `--out DIR`, `--name STEM`, `--no-wait`, `--timeout SEC` (default 600 image, 1800 video, 900 music), `--routing JSON`.
 
-## Music
+## Audio
 
-`music` runs music and sound-effect models from a text prompt (style, mood, scene, or the sound) and optional lyrics (lines separated by newlines, tags such as `[Verse]` and `[Chorus]` allowed). Prompt and lyrics limits are per model. It takes no reference files. Pick one of three forms; the script rejects other combinations before sending anything, and the API rejects forms a model does not offer:
+`audio` runs music, sound-effect and text-to-speech models (the `/v1/audio` endpoints). `music` is its old name and still works, as do `--type music`, `quote music` and batch `type: "music"`. It runs music and sound-effect models from a text prompt (style, mood, scene, or the sound) and optional lyrics (lines separated by newlines, tags such as `[Verse]` and `[Chorus]` allowed). Prompt and lyrics limits are per model. It takes no reference files. Pick one of three forms; the script rejects other combinations before sending anything, and the API rejects forms a model does not offer:
 
 - **Song with your lyrics:** `--lyrics-file ./lyrics.txt` (or `--lyrics "..."` for short text). Vocal music needs lyrics.
 - **Instrumental:** `-p instrumental=true`, no lyrics.
 - **Lyrics written for you:** `-p lyrics_optimizer=true`, no lyrics; Yir writes them from the prompt for a small extra charge shown in the quote.
 
-Models (check `model <id>` or `quote music` for current prices):
+Models (check `model <id>` or `quote audio` for current prices):
 
 - `minimax/music-2.6`: all three forms; the model picks the length. About $0.15 per track, plus $0.01 when lyrics are written for you.
 - `minimax/music-3`: your own lyrics required, no instrumental or written lyrics; song ends with the lyrics, up to 300 s. Quoted at the 300 s cap ($0.60), charged for the actual length; delivers WAV.
@@ -134,7 +134,7 @@ Models (check `model <id>` or `quote music` for current prices):
 
 ## Speech
 
-Text-to-speech models also run through `music`. `--prompt` is the exact text to read aloud; there are no lyrics, switches or `--duration`. `-p voice=ID` picks a preset voice of that model (omit it for the model default); the voice does not change the price. Billing is per character of the text, spaces, punctuation and audio tags included, so quote long scripts first.
+Text-to-speech models also run through `audio`. `--prompt` is the exact text to read aloud; there are no lyrics, switches or `--duration`. `-p voice=ID` picks a preset voice of that model (omit it for the model default); the voice does not change the price. Billing is per character of the text, spaces, punctuation and audio tags included, so quote long scripts first.
 
 - `minimax/speech-2.8-hd`: strong Chinese, up to 10000 characters, $0.0001 per character ($0.10 per 1000). Voices are MiniMax system voice IDs such as `Chinese (Mandarin)_News_Anchor`, `Chinese (Mandarin)_Gentleman`, `Chinese (Mandarin)_Sweet_Lady`; default `English_expressive_narrator`.
 - `elevenlabs/eleven-v3`: expressive English and multilingual, up to 5000 characters, $0.0001 per character; audio tags such as `[whispers]`, `[laughs]` steer delivery and are billed but not spoken. Default voice `JBFqnCBsd6RMkjVDRZzb`.
@@ -167,7 +167,7 @@ Use this when the user wants existing fal code moved to Yir: `fal_client.subscri
 
 ## What to expect
 
-- **Async jobs.** Images usually take tens of seconds; videos and music take minutes, videos sometimes longer. If the wait times out (exit code 3), the command is interrupted, or the submit failed with a network error, the Job keeps running: re-run the exact same command (same options and `--out`) and it resumes the same Job instead of creating another. `job <id> --wait --download` also works when you have the ID. Until the Job finishes, `<out>/.yir-pending/` holds the request; once it finishes, the same command asks for a new generation.
+- **Async jobs.** Images usually take tens of seconds; videos and audio take minutes, videos sometimes longer. If the wait times out (exit code 3), the command is interrupted, or the submit failed with a network error, the Job keeps running: re-run the exact same command (same options and `--out`) and it resumes the same Job instead of creating another. `job <id> --wait --download` also works when you have the ID. Until the Job finishes, `<out>/.yir-pending/` holds the request; once it finishes, the same command asks for a new generation.
 - **Status** is one of `queued`, `running`, `delivering`, `succeeded`, `failed`, `cancelled`.
 - **Billing.** A terminal result can still have `billing.status: pending`; `charged_usd` is the amount charged so far, final only at `settled`. Download results immediately and use `job <id>` to recheck fees; do not call a pending zero charge free. Missing billing status is unconfirmed. Batch caps remain reserved until settlement. New requests omit `billing_mode`; retries preserve the original request and idempotency key, including legacy fields. Delayed settlement sends an independent `job.billing_settled` webhook with a new event ID. Yir may fail over to another channel; an attempt the upstream billed is charged even if it failed or was replaced. Use `--max-cost` on routes with reliable estimates to cap spending. Prices can change between runs, so re-quote and leave headroom over the quote.
 - **Result links** are short-lived signed URLs; the script downloads them right away. Re-run `job <id> --download` to fetch again while the result is still available.
