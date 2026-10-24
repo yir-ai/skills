@@ -1,13 +1,13 @@
 # Yir Agent Skills
 
-Official [Agent Skills](https://agentskills.io) for [Yir](https://yir.ai), the image & video API router.
+Official [Agent Skills](https://agentskills.io) for [Yir](https://yir.ai/?utm_source=github&utm_medium=repo&utm_campaign=skills), the image & video API router.
 
 The `yir` skill lets coding agents such as Claude Code and Codex generate images, edit images from local files, and generate videos and audio (music, sound effects and speech) through one Yir API key. It lists models and prices, quotes a request, submits the job, waits for the result and saves the files locally. For pages, decks and articles that need many assets, it runs a whole plan as one budgeted, resumable batch.
 
 ## Requirements
 
 - Node.js 18 or later. The bundled script has no dependencies.
-- A Yir API key. Create one in the Yir Console at [yir.ai](https://yir.ai), then set it in the environment your agent runs in:
+- A Yir API key. Create one in the Yir Console at [yir.ai](https://yir.ai/?utm_source=github&utm_medium=repo&utm_campaign=skills), then set it in the environment your agent runs in:
 
 ```sh
 export YIR_API_KEY="..."
@@ -81,7 +81,7 @@ Results are saved to `./yir-output` by default (`--out` to change), each with a 
 
 ## Links
 
-- Documentation: [yir.ai/docs](https://yir.ai/docs)
+- Documentation: [yir.ai/docs](https://yir.ai/docs?utm_source=github&utm_medium=repo&utm_campaign=skills)
 - SDKs: [yir-ai/sdk](https://github.com/yir-ai/sdk)
 
 ## License
