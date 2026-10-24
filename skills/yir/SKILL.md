@@ -86,6 +86,7 @@ node scripts/yir.mjs video -m alibaba/wan-2.7 --prompt "she sings along to the s
 # Reference video (roles reference_image / reference_video / reference_audio)
 # Prompts name references by position within each role (@image1, @video1). Pass each file once:
 # Yir drops a repeated reference (with a parameter_notices entry) unless the prompt numbers past it, then rejects.
+# Kling 4.0 uses its own names: @image_1, @video_1, @first_frame, @last_frame; a misspelled name is rejected.
 node scripts/yir.mjs video -m <model> --prompt "..." --ref reference_image=./character.png
 
 # Characters from photos (Kling 3.0): 2-4 photos per character, up to 3, named with @NAME in the prompt

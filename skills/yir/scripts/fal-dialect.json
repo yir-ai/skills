@@ -2371,6 +2371,10 @@
           "kind": "default_only",
           "fal_default": true
         },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "auto_2K"
@@ -2387,13 +2391,26 @@
         "num_images": {
           "kind": "output_count"
         },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "jpeg",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
         "prompt": {
           "kind": "prompt"
+        },
+        "sequential_image_generation": {
+          "kind": "default_only",
+          "fal_default": null
         },
         "sync_mode": {
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "watermark": {
+          "kind": "default_only",
+          "fal_default": false
         }
       },
       "yir_parameters": {
@@ -2439,6 +2456,10 @@
           "kind": "default_only",
           "fal_default": true
         },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "auto_2K"
@@ -2450,6 +2471,11 @@
         "num_images": {
           "kind": "output_count"
         },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "jpeg",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
         "prompt": {
           "kind": "prompt"
         },
@@ -2457,10 +2483,18 @@
           "kind": "default_only",
           "fal_default": false
         },
+        "sequential_image_generation": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "sync_mode": {
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "watermark": {
+          "kind": "default_only",
+          "fal_default": false
         }
       },
       "yir_parameters": {
@@ -2502,6 +2536,10 @@
         "max": 10
       },
       "fields": {
+        "background": {
+          "kind": "default_only",
+          "fal_default": "opaque"
+        },
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
@@ -2509,6 +2547,10 @@
         "enhance_prompt_mode": {
           "kind": "default_only",
           "fal_default": "standard"
+        },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
         },
         "image_size": {
           "kind": "image_size",
@@ -2534,6 +2576,10 @@
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "watermark": {
+          "kind": "default_only",
+          "fal_default": false
         }
       },
       "yir_parameters": {
@@ -2602,6 +2648,10 @@
           "kind": "default_only",
           "fal_default": "standard"
         },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "auto_2K"
@@ -2621,6 +2671,10 @@
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "watermark": {
+          "kind": "default_only",
+          "fal_default": false
         }
       },
       "yir_parameters": {
@@ -5345,14 +5399,38 @@
           "param": "aspect_ratio",
           "fal_default": "auto"
         },
+        "context": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "enable_image_search": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "enable_web_search": {
           "kind": "param",
           "param": "web_search",
           "fal_default": false
         },
+        "history": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
+        },
+        "include_thoughts": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "limit_generations": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "max_output_tokens": {
+          "kind": "default_only",
+          "fal_default": null
         },
         "num_images": {
           "kind": "output_count"
@@ -5369,6 +5447,10 @@
           "kind": "param",
           "param": "resolution",
           "fal_default": "1K"
+        },
+        "return_history": {
+          "kind": "default_only",
+          "fal_default": false
         },
         "safety_tolerance": {
           "kind": "default_only",
@@ -5387,7 +5469,15 @@
           "kind": "default_only",
           "fal_default": ""
         },
+        "temperature": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "thinking_level": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "top_p": {
           "kind": "default_only",
           "fal_default": null
         }
@@ -5462,9 +5552,25 @@
           "kind": "unsupported",
           "note": "Yir google/nano-banana-2 image mode does not accept reference_audio files"
         },
+        "context": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "enable_image_search": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "enable_web_search": {
           "kind": "param",
           "param": "web_search",
+          "fal_default": false
+        },
+        "history": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "image_passthrough": {
+          "kind": "default_only",
           "fal_default": false
         },
         "image_urls": {
@@ -5472,9 +5578,17 @@
           "role": "reference_image",
           "required": false
         },
+        "include_thoughts": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "limit_generations": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "max_output_tokens": {
+          "kind": "default_only",
+          "fal_default": null
         },
         "num_images": {
           "kind": "output_count"
@@ -5496,6 +5610,10 @@
           "param": "resolution",
           "fal_default": "1K"
         },
+        "return_history": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "safety_tolerance": {
           "kind": "default_only",
           "fal_default": "4"
@@ -5513,7 +5631,15 @@
           "kind": "default_only",
           "fal_default": ""
         },
+        "temperature": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "thinking_level": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "top_p": {
           "kind": "default_only",
           "fal_default": null
         },
@@ -5588,13 +5714,33 @@
           "param": "aspect_ratio",
           "fal_default": "1:1"
         },
+        "context": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "enable_web_search": {
           "kind": "default_only",
           "fal_default": false
         },
+        "history": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
+        },
+        "include_thoughts": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "limit_generations": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "max_output_tokens": {
+          "kind": "default_only",
+          "fal_default": null
         },
         "num_images": {
           "kind": "output_count"
@@ -5612,6 +5758,10 @@
           "param": "resolution",
           "fal_default": "1K"
         },
+        "return_history": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "safety_tolerance": {
           "kind": "default_only",
           "fal_default": "4"
@@ -5628,6 +5778,18 @@
         "system_prompt": {
           "kind": "default_only",
           "fal_default": ""
+        },
+        "temperature": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "thinking_level": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "top_p": {
+          "kind": "default_only",
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -5677,18 +5839,38 @@
           "param": "aspect_ratio",
           "fal_default": "auto"
         },
+        "context": {
+          "kind": "default_only",
+          "fal_default": null
+        },
         "enable_web_search": {
+          "kind": "default_only",
+          "fal_default": false
+        },
+        "history": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "image_passthrough": {
           "kind": "default_only",
           "fal_default": false
         },
         "image_urls": {
           "kind": "reference",
           "role": "reference_image",
-          "required": true
+          "required": false
+        },
+        "include_thoughts": {
+          "kind": "default_only",
+          "fal_default": null
         },
         "limit_generations": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "max_output_tokens": {
+          "kind": "default_only",
+          "fal_default": null
         },
         "num_images": {
           "kind": "output_count"
@@ -5706,6 +5888,10 @@
           "param": "resolution",
           "fal_default": "1K"
         },
+        "return_history": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "safety_tolerance": {
           "kind": "default_only",
           "fal_default": "4"
@@ -5722,6 +5908,18 @@
         "system_prompt": {
           "kind": "default_only",
           "fal_default": ""
+        },
+        "temperature": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "thinking_level": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "top_p": {
+          "kind": "default_only",
+          "fal_default": null
         }
       },
       "yir_parameters": {
@@ -7760,7 +7958,9 @@
         },
         "resolution": {
           "values": [
+            "480p",
             "768P",
+            "1080p",
             "2K"
           ],
           "default": "768P"
@@ -7867,7 +8067,9 @@
         },
         "resolution": {
           "values": [
+            "480p",
             "768P",
+            "1080p",
             "2K"
           ],
           "default": "768P"
@@ -7955,7 +8157,9 @@
         },
         "resolution": {
           "values": [
+            "480p",
             "768P",
+            "1080p",
             "2K"
           ],
           "default": "768P"
@@ -8002,12 +8206,20 @@
           "kind": "default_only",
           "fal_default": true
         },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "landscape_4_3"
         },
         "num_images": {
           "kind": "output_count"
+        },
+        "output_compression": {
+          "kind": "default_only",
+          "fal_default": null
         },
         "output_format": {
           "kind": "delivery",
@@ -8089,6 +8301,10 @@
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
         },
         "image_size": {
           "kind": "image_size",
@@ -8193,6 +8409,10 @@
           "kind": "default_only",
           "fal_default": true
         },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "landscape_4_3"
@@ -8286,6 +8506,10 @@
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
         },
         "image_size": {
           "kind": "image_size",
@@ -8390,6 +8614,10 @@
           "kind": "default_only",
           "fal_default": true
         },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "landscape_4_3"
@@ -8484,6 +8712,10 @@
           "kind": "default_only",
           "fal_default": true
         },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "auto"
@@ -8499,6 +8731,10 @@
         },
         "num_images": {
           "kind": "output_count"
+        },
+        "output_compression": {
+          "kind": "default_only",
+          "fal_default": null
         },
         "output_format": {
           "kind": "delivery",
@@ -8860,6 +9096,10 @@
           "kind": "default_only",
           "fal_default": true
         },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
+        },
         "num_images": {
           "kind": "output_count"
         },
@@ -8924,6 +9164,10 @@
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
         },
         "image_urls": {
           "kind": "reference",
@@ -8994,6 +9238,10 @@
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
         },
         "image_urls": {
           "kind": "reference",
@@ -9072,6 +9320,10 @@
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
+        },
+        "image_passthrough": {
+          "kind": "default_only",
+          "fal_default": false
         },
         "num_images": {
           "kind": "output_count"
