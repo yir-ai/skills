@@ -13,6 +13,8 @@ node scripts/yir.mjs --help
 
 It reads `YIR_API_KEY` from the environment. If it is missing or rejected (`YIR_UNAUTHORIZED`), tell the user to create an API Key in the Yir Console at https://yir.ai and export it as `YIR_API_KEY`. Never print or write the key.
 
+If the Yir MCP server is already connected (tools such as `list_models`, `quote` and `generate` from server `yir`) and `YIR_API_KEY` is not set, use those tools for single jobs instead of asking for a key: same workflow, quote first and pass the approved amount as `max_cost`. Use this script when files must be saved locally or for batches.
+
 ## Account API: analytics and settings
 
 Use **Gateway Key** (`YIR_API_KEY`, `yir_sk_`) for generation commands. Use a separate **Account Key** (`YIR_ACCOUNT_API_KEY`, `yir_ak_`) for account commands. Create it in Console → API Keys → Account Key. Default permission is read only; settings writes need the explicit settings permission. The public Account API is not Yir's internal Admin API. Never use browser cookies or try internal administrator paths.
