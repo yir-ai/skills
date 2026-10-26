@@ -269,3 +269,14 @@ test('first frame with driving audio stays image input; frames with reference im
  assert.deepEqual(call.input.references,[{role:'first_frame',url:'https://example.com/a.png'},{role:'reference_audio',url:'https://example.com/v.mp3'}]);
  await assert.rejects(()=>exec(process.execPath,[...base,'--ref','first_frame=https://example.com/a.png','--ref','reference_image=https://example.com/b.png'],{env}),e=>e.code===2);
 });
+
+test('keyframes stay image input in --ref order and may repeat a shot', async t => {
+ const f=await fixture(t,['unused']);
+ const mock=join(f.dir,'mock.mjs'); const env={...process.env,YIR_API_KEY:'mock',YIR_BASE_URL:'https://mock',CALLS:join(f.dir,'calls')};
+ const base=[ '--import',pathToFileURL(mock).href,script,'video','-m','test/video','--prompt','@first_frame to @keyframe_1','--out',f.dir,'--no-wait'];
+ await exec(process.execPath,[...base,'--ref','first_frame=https://example.com/a.png','--ref','keyframe=https://example.com/b.png','--ref','last_frame=https://example.com/c.png','--ref','keyframe=https://example.com/b.png'],{env});
+ const call=JSON.parse((await readFile(join(f.dir,'calls'),'utf8')).trim().split('\n')[0]);
+ assert.equal(call.input.type,'image');
+ assert.deepEqual(call.input.references.map(r=>r.role),['first_frame','keyframe','last_frame','keyframe']);
+ await assert.rejects(()=>exec(process.execPath,[...base,'--ref','first_frame=https://example.com/a.png','--ref','keyframe=https://example.com/b.png','--ref','reference_image=https://example.com/c.png'],{env}),e=>e.code===2);
+});

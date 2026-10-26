@@ -19,7 +19,7 @@ const MEDIA_TYPES = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image
   ".mp4": "video/mp4", ".webm": "video/webm", ".mp3": "audio/mpeg", ".wav": "audio/wav" };
 const EXTENSIONS = { "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp", "image/gif": ".gif",
   "video/mp4": ".mp4", "video/webm": ".webm", "video/quicktime": ".mov", "audio/mpeg": ".mp3", "audio/wav": ".wav", "audio/x-wav": ".wav", "audio/wave": ".wav" };
-const REF_ROLES = new Set(["reference_image", "first_frame", "last_frame", "reference_video", "reference_audio"]);
+const REF_ROLES = new Set(["reference_image", "first_frame", "keyframe", "last_frame", "reference_video", "reference_audio"]);
 const SUBJECT_NAME = /^[A-Za-z][A-Za-z0-9_]{0,31}$/;
 // "audio" is the public name and "music" its permanent alias; internally the audio kind stays "music"
 // because its requests carry operation generate_music.
@@ -57,7 +57,7 @@ Generation options:
                             are filled with the model's defaults.
   --image PATH|URL          Shorthand reference: reference_image for image, first_frame for video
   --ref role=PATH|URL       Reference with explicit role, repeatable. Roles: reference_image,
-                            first_frame, last_frame, reference_video, reference_audio
+                            first_frame, keyframe, last_frame, reference_video, reference_audio
                             reference_image@NAME=PATH groups photos into character NAME (models
                             listing "subjects" under model <id>); write @NAME in the prompt.
                             reference_audio@NAME=PATH is NAME's voice, or a standalone voice when
@@ -198,10 +198,10 @@ function parseRefs(operation, values) {
 function inputMode(operation, refs) {
   if (!refs.length || (operation !== "generate_image" && operation !== "generate_video")) return "text";
   if (operation === "generate_image") return "image";
-  const framed = refs.some(r => r.role === "first_frame" || r.role === "last_frame");
+  const framed = refs.some(r => r.role === "first_frame" || r.role === "keyframe" || r.role === "last_frame");
   // A frame input may carry one driving audio (lip sync, e.g. alibaba/wan-2.7); other reference_* roles need reference mode.
   const referenced = refs.some(r => r.role.startsWith("reference_") && !(framed && r.role === "reference_audio"));
-  if (framed && referenced) throw new UsageError("video references cannot mix first_frame/last_frame with reference_image/reference_video roles");
+  if (framed && referenced) throw new UsageError("video references cannot mix first_frame/keyframe/last_frame with reference_image/reference_video roles");
   return framed ? "image" : "reference";
 }
 
