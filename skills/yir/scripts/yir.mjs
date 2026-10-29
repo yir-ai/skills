@@ -6,7 +6,7 @@ import { readFile, writeFile, mkdir, stat, rm, rename } from "node:fs/promises";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 
-const VERSION = "0.4.0";
+const VERSION = "0.5.0";
 const CONSOLE_URL = "https://yir.ai";
 const BASE_URL = (process.env.YIR_BASE_URL || "https://gateway.yir.ai").trim().replace(/\/+$/, "");
 const REQUEST_TIMEOUT_MS = 30000;
@@ -336,10 +336,19 @@ async function readLyrics(operation, values, parameters) {
   return lyrics;
 }
 
+// Yir price against the model maker's own list price for the same output (both output-only), so the user sees what
+// the job would cost at the official API and how much Yir saves. Null when either side has no amount.
+function vsOfficial(q) {
+  const yir = Number(q.primary?.amount), official = Number(q.official?.amount);
+  if (q.primary?.amount == null || q.official?.amount == null || !Number.isFinite(yir) || !Number.isFinite(official) || official <= 0) return null;
+  return { official_usd: q.official.amount, official_is_estimate: q.official.kind === "estimate", yir_usd: q.primary.amount,
+    saved_usd: (official - yir).toFixed(4), saved_percent: Math.round((1 - yir / official) * 100) };
+}
+
 function summarizeQuote(q) {
   return { model: q.model, operation: q.operation, input_mode: q.input_mode, parameters: q.parameters,
-    currency: q.currency, price: q.primary, expected_amount: q.expected_amount, official_price: q.official, supply: q.supply,
-    parameter_notices: q.parameter_notices, expires_at: q.expires_at };
+    currency: q.currency, price: q.primary, expected_amount: q.expected_amount, official_price: q.official, vs_official: vsOfficial(q),
+    supply: q.supply, parameter_notices: q.parameter_notices, expires_at: q.expires_at };
 }
 
 function summarizeJob(job, paths = []) {
@@ -703,6 +712,7 @@ async function cmdBatch(file, values) {
       // expected_amount includes reference-input charges an output-only primary estimate leaves out.
       const amount = q.expected_amount ?? q.primary?.amount;
       j.quote = amount == null ? null : Number(amount);
+      j.vsOfficial = vsOfficial(q);
       if (!q.supply?.available) throw new Error(`no channel can run this request now (${(q.supply?.issues || []).map(i => i.code || i).join(", ") || "unavailable"})`);
       if (j.quote === null || !Number.isFinite(j.quote) || j.quote < 0) {
         j.quote = null;
@@ -722,7 +732,15 @@ async function cmdBatch(file, values) {
     throw new UsageError(`plan has ${problems.length} job(s) that cannot run as written:\n  ${problems.join("\n  ")}\nCheck parameters with \`model <id>\` or pick another model.`);
   }
   log(`plan: ${todo.length} job(s) to run, quoted total ${unknownQuotes ? "pending" : `$${quoted.toFixed(4)}`}${maxTotal ? ` (limit $${maxTotal})` : ""}`);
-  if (values["dry-run"]) return print({ dry_run: true, quoted_total_usd: unknownQuotes ? null : quoted.toFixed(4), jobs: todo.map(j => ({ name: j.name, model: j.values.model, quoted_usd: j.quote, resume_job_id: state.jobs[j.name]?.job_id })) }), 0;
+  if (values["dry-run"]) {
+    // Savings are summed only over jobs whose official price is known; the count says how many that is.
+    const compared = todo.filter(j => j.vsOfficial);
+    const saved = compared.reduce((sum, j) => sum + Number(j.vsOfficial.saved_usd), 0);
+    const official = compared.reduce((sum, j) => sum + Number(j.vsOfficial.official_usd), 0);
+    return print({ dry_run: true, quoted_total_usd: unknownQuotes ? null : quoted.toFixed(4),
+      vs_official: compared.length ? { jobs_compared: compared.length, jobs_total: todo.length, official_usd: official.toFixed(4), saved_usd: saved.toFixed(4) } : null,
+      jobs: todo.map(j => ({ name: j.name, model: j.values.model, quoted_usd: j.quote, vs_official: j.vsOfficial ?? null, resume_job_id: state.jobs[j.name]?.job_id })) }), 0;
+  }
   if (maxTotal !== undefined && quoted > maxTotal) throw new UsageError(`quoted total $${quoted.toFixed(4)} exceeds --max-total ${maxTotal}; drop jobs or raise the limit`);
 
   // Settle old/uncertain submits first: legacy jobs may have no server-side cap.

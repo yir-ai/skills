@@ -24,7 +24,7 @@ async function fixture(t, jobs, state = {jobs:{}}) {
     else if(p.includes('/models/test/speech')) data={operations:[{operation:'generate_speech',input_modes:['text'],parameters:[{name:'voice',type:'string',required:false,default:'English_expressive_narrator',control:'text'},{name:'n',type:'integer',required:false,values:[1]}]}]};
     else if(p.includes('/models/test/sfx')) data={operations:[{operation:'generate_sound_effect',input_modes:['text'],parameters:[{name:'duration',type:'integer',required:false,default:5,minimum:1,maximum:22},{name:'n',type:'integer',required:false,values:[1]}]}]};
     else if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[{name:'size',type:'string',required:false,values:['3136x1344']}]},{operation:'generate_video',input_modes:['text','image','reference'],parameters:[{name:'fps',type:'integer',required:false,values:[24]}]},{operation:'generate_music',input_modes:['text'],parameters:[{name:'instrumental',type:'boolean',required:false,default:false},{name:'lyrics_optimizer',type:'boolean',required:false,default:false},{name:'duration',type:'integer',required:false,values:[30,60,120],default:60},{name:'n',type:'integer',required:false,values:[1,2]}]}]};
-    else if(p.endsWith('/quotes')) { await appendFile(process.env.CALLS+'.paths',p+'\\n'); if ('max_cost' in JSON.parse(opts.body)) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',message:'max_cost is not allowed in this request.'}}),{status:400}); data=process.env.UNKNOWN_QUOTE==='1'?{primary:{amount:null},supply:{available:true}}:{expected_amount:'0.05',supply:{available:true}}; }
+    else if(p.endsWith('/quotes')) { await appendFile(process.env.CALLS+'.paths',p+'\\n'); if ('max_cost' in JSON.parse(opts.body)) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',message:'max_cost is not allowed in this request.'}}),{status:400}); data=process.env.UNKNOWN_QUOTE==='1'?{primary:{amount:null},supply:{available:true}}:{expected_amount:'0.05',primary:{amount:'0.05',kind:'fixed'},official:process.env.OFFICIAL?{amount:process.env.OFFICIAL,kind:'estimate'}:{amount:null,kind:'unavailable'},supply:{available:true}}; }
     else if(p.endsWith('/generations')) {
       await appendFile(process.env.CALLS,JSON.stringify(JSON.parse(opts.body))+'\\n'); await appendFile(process.env.CALLS+'.paths',p+'\\n');
       data={id:'2',status:'queued'};
@@ -279,4 +279,17 @@ test('keyframes stay image input in --ref order and may repeat a shot', async t 
  assert.equal(call.input.type,'image');
  assert.deepEqual(call.input.references.map(r=>r.role),['first_frame','keyframe','last_frame','keyframe']);
  await assert.rejects(()=>exec(process.execPath,[...base,'--ref','first_frame=https://example.com/a.png','--ref','keyframe=https://example.com/b.png','--ref','reference_image=https://example.com/c.png'],{env}),e=>e.code===2);
+});
+
+test('dry run compares each quote with the official price and sums the savings',async t=>{
+ const f=await fixture(t,['a','b']);
+ const r=await f.run(['--dry-run'],{OFFICIAL:'0.2'});
+ assert.equal(r.code,0);assert.equal(r.calls.length,0);
+ const out=JSON.parse(r.stdout);
+ assert.deepEqual(out.jobs[0].vs_official,{official_usd:'0.2',official_is_estimate:true,yir_usd:'0.05',saved_usd:'0.1500',saved_percent:75});
+ assert.deepEqual(out.vs_official,{jobs_compared:2,jobs_total:2,official_usd:'0.4000',saved_usd:'0.3000'});
+});
+test('dry run without an official price reports no savings',async t=>{
+ const f=await fixture(t,['a']);const r=await f.run(['--dry-run']);
+ const out=JSON.parse(r.stdout);assert.equal(out.vs_official,null);assert.equal(out.jobs[0].vs_official,null);
 });
