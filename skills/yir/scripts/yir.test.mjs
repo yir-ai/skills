@@ -252,7 +252,7 @@ test('reference_image@NAME groups photos into a subject and rejects invalid name
  const voiceCall=JSON.parse((await readFile(join(f.dir,'calls'),'utf8')).trim().split('\n').at(-1));
  assert.deepEqual(voiceCall.input.references,[{role:'reference_audio',url:'https://example.com/n.mp3',subject:'Narrator'}]);
  await exec(process.execPath,[...base,'--ref','reference_video@Hero=https://example.com/h.mp4'],{env});
- const videoCall=JSON.parse((await readFile(join(f.dir,'calls'),'utf8')).trim().split(String.fromCharCode(10)).at(-1));
+ const videoCall=JSON.parse((await readFile(join(f.dir,'calls'),'utf8')).trim().split('\n').at(-1));
  assert.deepEqual(videoCall.input.references,[{role:'reference_video',url:'https://example.com/h.mp4',subject:'Hero'}]);
  for (const bad of ['first_frame@hero=https://example.com/a.png','last_frame@hero=https://example.com/a.png','reference_image@1hero=https://example.com/a.png','reference_image@a@b=https://example.com/a.png']) {
   await assert.rejects(()=>exec(process.execPath,[...base,'--ref',bad],{env}),e=>e.code===2,bad);
