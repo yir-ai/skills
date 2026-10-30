@@ -2692,10 +2692,6 @@
           "kind": "default_only",
           "fal_default": true
         },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
-        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "auto_2K"
@@ -2776,10 +2772,6 @@
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
-        },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "image_size": {
           "kind": "image_size",
@@ -2868,10 +2860,6 @@
         "enhance_prompt_mode": {
           "kind": "default_only",
           "fal_default": "standard"
-        },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "image_size": {
           "kind": "image_size",
@@ -2968,10 +2956,6 @@
         "enhance_prompt_mode": {
           "kind": "default_only",
           "fal_default": "standard"
-        },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "image_size": {
           "kind": "image_size",
@@ -3253,8 +3237,8 @@
         "image_size": {
           "kind": "image_size",
           "fal_default": {
-            "width": 2048,
-            "height": 2048
+            "height": 2048,
+            "width": 2048
           }
         },
         "image_urls": {
@@ -3328,8 +3312,8 @@
         "image_size": {
           "kind": "image_size",
           "fal_default": {
-            "width": 2048,
-            "height": 2048
+            "height": 2048,
+            "width": 2048
           }
         },
         "max_images": {
@@ -4044,6 +4028,10 @@
           "kind": "default_only",
           "fal_default": "auto"
         },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "1024x1024"
@@ -4112,6 +4100,10 @@
         "background": {
           "kind": "default_only",
           "fal_default": "auto"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
         },
         "image_size": {
           "kind": "image_size",
@@ -5582,10 +5574,6 @@
           "kind": "default_only",
           "fal_default": null
         },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
-        },
         "include_thoughts": {
           "kind": "default_only",
           "fal_default": null
@@ -5734,10 +5722,6 @@
         "history": {
           "kind": "default_only",
           "fal_default": null
-        },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "image_urls": {
           "kind": "reference",
@@ -5892,10 +5876,6 @@
           "kind": "default_only",
           "fal_default": null
         },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
-        },
         "include_thoughts": {
           "kind": "default_only",
           "fal_default": null
@@ -6016,10 +5996,6 @@
         "history": {
           "kind": "default_only",
           "fal_default": null
-        },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "image_urls": {
           "kind": "reference",
@@ -8372,10 +8348,6 @@
           "kind": "default_only",
           "fal_default": true
         },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
-        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "landscape_4_3"
@@ -8467,10 +8439,6 @@
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
-        },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "image_size": {
           "kind": "image_size",
@@ -8575,10 +8543,6 @@
           "kind": "default_only",
           "fal_default": true
         },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
-        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "landscape_4_3"
@@ -8672,10 +8636,6 @@
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
-        },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "image_size": {
           "kind": "image_size",
@@ -8780,10 +8740,6 @@
           "kind": "default_only",
           "fal_default": true
         },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
-        },
         "image_size": {
           "kind": "image_size",
           "fal_default": "landscape_4_3"
@@ -8877,10 +8833,6 @@
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
-        },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "image_size": {
           "kind": "image_size",
@@ -9262,10 +9214,6 @@
           "kind": "default_only",
           "fal_default": true
         },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
-        },
         "num_images": {
           "kind": "output_count"
         },
@@ -9330,10 +9278,6 @@
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
-        },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "image_urls": {
           "kind": "reference",
@@ -9404,10 +9348,6 @@
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
-        },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "image_urls": {
           "kind": "reference",
@@ -9486,10 +9426,6 @@
         "enable_safety_checker": {
           "kind": "default_only",
           "fal_default": true
-        },
-        "image_passthrough": {
-          "kind": "default_only",
-          "fal_default": false
         },
         "num_images": {
           "kind": "output_count"
