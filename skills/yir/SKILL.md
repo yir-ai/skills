@@ -1,6 +1,6 @@
 ---
 name: yir
-description: Generate and edit images, and generate videos and audio (music, sound effects, speech), through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, make a song, instrumental track or sound effect, read text aloud as speech (text-to-speech / voiceover), produce a set of images or clips for a page, deck or article in one batch, compare or pick image/video/audio models and prices, check, download or cancel a Yir job by ID, or migrate existing fal (fal.ai) code to Yir. Requires YIR_API_KEY.
+description: Generate and edit images, and generate videos and audio (music, sound effects, speech), through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, make a song, instrumental track, cover of an uploaded song or sound effect, read text aloud as speech (text-to-speech / voiceover), produce a set of images or clips for a page, deck or article in one batch, compare or pick image/video/audio models and prices, check, download or cancel a Yir job by ID, or migrate existing fal (fal.ai) code to Yir. Requires YIR_API_KEY.
 ---
 
 # Yir image, video and audio jobs
@@ -108,6 +108,9 @@ node scripts/yir.mjs audio -m minimax/music-2.6 --prompt "warm indie pop, female
 node scripts/yir.mjs audio -m minimax/music-2.6 --prompt "calm lo-fi piano for a product demo" -p instrumental=true
 node scripts/yir.mjs audio -m elevenlabs/music-v2.5 --prompt "upbeat synthwave, male vocal" -p lyrics_optimizer=true --duration 120
 
+# Cover of an uploaded song (Suno): keeps the melody, restyles it per --prompt
+node scripts/yir.mjs audio -m suno/suno-v6 --prompt "acoustic folk, soft female vocal" --ref reference_audio=./song.mp3 -p lyrics_optimizer=true
+
 # Sound effect (1-22 s)
 node scripts/yir.mjs audio -m elevenlabs/sound-effects-v2 --prompt "heavy wooden door creaking open" --duration 4
 
@@ -125,7 +128,7 @@ Options: `-p key=value` (repeatable), `--image` (reference_image for image jobs,
 
 ## Audio
 
-`audio` runs music, sound-effect and text-to-speech models (the `/v1/audio` endpoints). `music` is its old name and still works, as do `--type music`, `quote music` and batch `type: "music"`. It runs music and sound-effect models from a text prompt (style, mood, scene, or the sound) and optional lyrics (lines separated by newlines, tags such as `[Verse]` and `[Chorus]` allowed). Prompt and lyrics limits are per model. It takes no reference files. Pick one of three forms; the script rejects other combinations before sending anything, and the API rejects forms a model does not offer:
+`audio` runs music, sound-effect and text-to-speech models (the `/v1/audio` endpoints). `music` is its old name and still works, as do `--type music`, `quote music` and batch `type: "music"`. It runs music and sound-effect models from a text prompt (style, mood, scene, or the sound) and optional lyrics (lines separated by newlines, tags such as `[Verse]` and `[Chorus]` allowed). Prompt and lyrics limits are per model. Only a Suno cover takes a reference file (below). Pick one of three forms; the script rejects other combinations before sending anything, and the API rejects forms a model does not offer:
 
 - **Song with your lyrics:** `--lyrics-file ./lyrics.txt` (or `--lyrics "..."` for short text). Vocal music needs lyrics.
 - **Instrumental:** `-p instrumental=true`, no lyrics.
@@ -138,6 +141,8 @@ Models (check `model <id>` or `quote audio` for current prices):
 - `elevenlabs/music-v2`, `elevenlabs/music-v2.5`: no custom lyrics; use `-p lyrics_optimizer=true` or `-p instrumental=true`. `--duration` 30, 60, 120, 180, 240 or 300 (default 60); $0.60 per started minute (60 s = $0.60, 300 s = $3.00).
 - `elevenlabs/sound-effects-v2`: short sound effects, `--duration` 1-22 s (default 5), no lyrics or switches. About $0.002 per second.
 - `suno/suno-v6`, `suno/suno-v6-wild` (experimental), `suno/suno-v6-mini` (efficient, may return shorter tracks): all three forms; every request makes two tracks (`n` is 2), about $0.05-0.06 per request. Suno has no official API; Yir accesses it unofficially through third-party channels. Say so when the user picks it.
+
+**Cover of an uploaded song (Suno only):** add `--ref reference_audio=./song.mp3` (local mp3/wav, uploaded first, or an https URL). Exactly one source song, up to 8 minutes; the cover keeps its melody and `--prompt` describes the new style. Lyrics follow the same three forms: new lyrics with `--lyrics`/`--lyrics-file`, `-p lyrics_optimizer=true`, or `-p instrumental=true`. Same price as a new Suno request, two tracks. Other audio models reject `--ref`.
 
 ## Speech
 

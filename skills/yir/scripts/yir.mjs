@@ -41,8 +41,10 @@ Usage:
   node yir.mjs image  --model M --prompt P [options] Text-to-image, or image edit with --image
   node yir.mjs video  --model M --prompt P [options] Text/image/reference-to-video
   node yir.mjs audio  --model M --prompt P [--lyrics-file F | -p instrumental=true | -p lyrics_optimizer=true]
-                    [--duration SEC]                Song, instrumental, sound effect or speech (mp3/wav; Suno saves
-                                                    two tracks). \`music\` is the old name and still works
+                    [--duration SEC] [--ref reference_audio=PATH|URL]
+                                                    Song, instrumental, sound effect or speech (mp3/wav; Suno saves
+                                                    two tracks). With --ref, a Suno cover of that song in the
+                                                    --prompt style. \`music\` is the old name and still works
   node yir.mjs batch <plan.json> [--max-total USD] [--concurrency N] [--dry-run]
                                                     Run many image/video/audio jobs from a plan; re-run resumes
   node yir.mjs job <id> [--wait] [--download] [--out DIR]
@@ -63,6 +65,8 @@ Generation options:
                             reference_audio@NAME=PATH is NAME's voice, or a standalone voice when
                             NAME has no photos (models listing "voices"); reference_video@NAME=PATH
                             makes NAME a video character (models listing "video characters").
+                            audio: one reference_audio=PATH|URL is the source song of a cover
+                            (Suno, up to 8 minutes; lyrics rules as for a new song).
                             Local files are uploaded through the Files API first.
   --lyrics TEXT             Music: song lyrics (lines separated by newlines, [Verse]/[Chorus] tags allowed)
   --lyrics-file PATH        Music: read the lyrics from a UTF-8 text file
@@ -181,7 +185,7 @@ function parseParams(list = []) {
 
 function parseRefs(operation, values) {
   const refs = [];
-  if (operation === "generate_music" && (values.image?.length || values.ref?.length)) throw new UsageError("audio takes no --image or --ref; describe the sound in --prompt");
+  if (operation === "generate_music" && values.image?.length) throw new UsageError("audio takes no --image; a cover takes one --ref reference_audio=PATH|URL");
   for (const src of values.image || []) refs.push({ role: operation === "generate_image" ? "reference_image" : "first_frame", src });
   for (const item of values.ref || []) {
     const i = item.indexOf("=");
@@ -192,11 +196,16 @@ function parseRefs(operation, values) {
     }
     refs.push({ role, src: item.slice(i + 1), ...(subject !== undefined ? { subject } : {}) });
   }
+  // A cover (Suno) remakes exactly one source song.
+  if (operation === "generate_music" && refs.length && (refs.length > 1 || refs[0].role !== "reference_audio" || refs[0].subject !== undefined)) {
+    throw new UsageError("audio takes one --ref reference_audio=PATH|URL (the source song for a cover)");
+  }
   return refs;
 }
 
 function inputMode(operation, refs) {
-  if (!refs.length || (operation !== "generate_image" && operation !== "generate_video")) return "text";
+  if (!refs.length) return "text";
+  if (operation === "generate_music") return "reference";
   if (operation === "generate_image") return "image";
   const framed = refs.some(r => r.role === "first_frame" || r.role === "keyframe" || r.role === "last_frame");
   // A frame input may carry one driving audio (lip sync, e.g. alibaba/wan-2.7); other reference_* roles need reference mode.
@@ -298,7 +307,7 @@ async function buildRequest(operation, values, params = parseParams(values.param
   }
   const { parameters, operation: contractOperation } = await withDefaults(values.model, operation, mode, params);
   const lyrics = await readLyrics(contractOperation, values, parameters);
-  const input = mode === "text" ? { type: "text", prompt: values.prompt, ...(lyrics ? { lyrics } : {}) } : { type: mode, prompt: values.prompt, references: await resolveRefs(refs) };
+  const input = { type: mode, prompt: values.prompt, ...(lyrics ? { lyrics } : {}), ...(mode === "text" ? {} : { references: await resolveRefs(refs) }) };
   const body = { model: values.model, input, parameters };
   if (values.routing) {
     try { body.routing = JSON.parse(values.routing); } catch { throw new UsageError("--routing must be valid JSON"); }

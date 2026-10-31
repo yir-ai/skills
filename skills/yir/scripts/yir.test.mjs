@@ -22,6 +22,8 @@ async function fixture(t, jobs, state = {jobs:{}}) {
     let data;
     if(p==='/v1/models') data={models:[{id:'test/image',operations:[{operation:'generate_image',input_modes:['text']}]},{id:'test/speech',operations:[{operation:'generate_speech',input_modes:['text']}]},{id:'test/music',operations:[{operation:'generate_music',input_modes:['text']}]}]};
     else if(p.includes('/models/test/speech')) data={operations:[{operation:'generate_speech',input_modes:['text'],parameters:[{name:'voice',type:'string',required:false,default:'English_expressive_narrator',control:'text'},{name:'n',type:'integer',required:false,values:[1]}]}]};
+    else if(p.includes('/models/test/suno')) data={operations:[{operation:'generate_music',input_modes:['text','reference'],parameters:[{name:'instrumental',type:'boolean',required:false,default:false},{name:'lyrics_optimizer',type:'boolean',required:false,default:false},{name:'n',type:'integer',required:false,values:[2],default:2}]}]};
+    else if(p==='/v1/files') { const meta=JSON.parse(opts.body).files[0]; await appendFile(process.env.CALLS+'.files',JSON.stringify(meta)+'\\n'); data={files:[{id:'file_11111111-1111-4111-8111-111111111111',status:'ready'}]}; }
     else if(p.includes('/models/test/sfx')) data={operations:[{operation:'generate_sound_effect',input_modes:['text'],parameters:[{name:'duration',type:'integer',required:false,default:5,minimum:1,maximum:22},{name:'n',type:'integer',required:false,values:[1]}]}]};
     else if(p.includes('/models/')) data={operations:[{operation:'generate_image',input_modes:['text'],parameters:[{name:'size',type:'string',required:false,values:['3136x1344']}]},{operation:'generate_video',input_modes:['text','image','reference'],parameters:[{name:'fps',type:'integer',required:false,values:[24]}]},{operation:'generate_music',input_modes:['text'],parameters:[{name:'instrumental',type:'boolean',required:false,default:false},{name:'lyrics_optimizer',type:'boolean',required:false,default:false},{name:'duration',type:'integer',required:false,values:[30,60,120],default:60},{name:'n',type:'integer',required:false,values:[1,2]}]}]};
     else if(p.endsWith('/quotes')) { await appendFile(process.env.CALLS+'.paths',p+'\\n'); if ('max_cost' in JSON.parse(opts.body)) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',message:'max_cost is not allowed in this request.'}}),{status:400}); data=process.env.UNKNOWN_QUOTE==='1'?{primary:{amount:null},supply:{available:true}}:{expected_amount:'0.05',primary:{amount:'0.05',kind:'fixed'},official:process.env.OFFICIAL?{amount:process.env.OFFICIAL,kind:'estimate'}:{amount:null,kind:'unavailable'},supply:{available:true}}; }
@@ -188,6 +190,32 @@ test('music lyrics rules are checked before quoting or submitting', async t => {
  }
  const f=await fixture(t,['song']); await musicPlan(f,{params:{instrumental:true}});
  const r=await f.run([],{MUSIC:'1'}); assert.equal(r.code,0,r.stderr); assert.deepEqual(r.calls[0].input,{type:'text',prompt:'test'}); assert.deepEqual(r.calls[0].parameters,{instrumental:true});
+});
+test('audio --ref reference_audio makes a cover: URL or uploaded local song, lyrics rules unchanged', async t => {
+ const f=await fixture(t,['unused']);
+ const mock=join(f.dir,'mock.mjs'); const env={...process.env,YIR_API_KEY:'mock',YIR_BASE_URL:'https://mock',CALLS:join(f.dir,'calls')};
+ const base=['--import',pathToFileURL(mock).href,script,'audio','-m','test/suno','--prompt','acoustic folk cover','--out',f.dir,'--no-wait'];
+ await exec(process.execPath,[...base,'--ref','reference_audio=https://example.com/song.mp3','-p','lyrics_optimizer=true'],{env});
+ await writeFile(join(f.dir,'song.mp3'),'mp3');
+ await exec(process.execPath,[...base,'--ref',`reference_audio=${join(f.dir,'song.mp3')}`,'--lyrics','[Verse]\nnew words'],{env});
+ const calls=(await readFile(join(f.dir,'calls'),'utf8')).trim().split('\n').map(JSON.parse);
+ assert.deepEqual(calls[0].input,{type:'reference',prompt:'acoustic folk cover',references:[{role:'reference_audio',url:'https://example.com/song.mp3'}]});
+ assert.deepEqual(calls[0].parameters,{lyrics_optimizer:true});
+ assert.deepEqual(calls[1].input,{type:'reference',prompt:'acoustic folk cover',lyrics:'[Verse]\nnew words',references:[{role:'reference_audio',file_id:'file_11111111-1111-4111-8111-111111111111'}]});
+ assert.deepEqual(JSON.parse((await readFile(join(f.dir,'calls.files'),'utf8')).trim()),{name:'song.mp3',media_type:'audio/mpeg',size:3});
+ assert.deepEqual((await readFile(join(f.dir,'calls.paths'),'utf8')).trim().split('\n'),['/v1/audio/generations','/v1/audio/generations']);
+ const song='reference_audio=https://example.com/song.mp3';
+ for (const [args,msg] of [
+  [['--ref',song],/vocal music needs/],
+  [['--ref',song,'--ref','reference_audio=https://example.com/b.mp3','-p','instrumental=true'],/one --ref reference_audio/],
+  [['--ref','reference_image=https://example.com/a.png','-p','instrumental=true'],/one --ref reference_audio/],
+  [['--ref','reference_audio@Singer=https://example.com/a.mp3','-p','instrumental=true'],/one --ref reference_audio/],
+ ]) {
+  await assert.rejects(()=>exec(process.execPath,[...base,...args],{env}),e=>e.code===2&&msg.test(e.stderr),msg.source);
+ }
+ // Models without the reference input mode refuse a cover before any quote or submit.
+ await assert.rejects(()=>exec(process.execPath,[...base.slice(0,5),'test/music',...base.slice(6),'--ref',song,'-p','instrumental=true'],{env}),e=>e.code===2&&/not "reference"/.test(e.stderr));
+ assert.equal((await readFile(join(f.dir,'calls'),'utf8')).trim().split('\n').length,2);
 });
 test('models --type audio lists music and speech models; music is an alias', async t => {
  const f=await fixture(t,['unused']);
