@@ -1,9 +1,9 @@
 ---
 name: yir
-description: Generate and edit images, and generate videos and audio (music, sound effects, speech), through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, make a song, instrumental track, cover of an uploaded song or sound effect, read text aloud as speech (text-to-speech / voiceover), produce a set of images or clips for a page, deck or article in one batch, compare or pick image/video/audio models and prices, check, download or cancel a Yir job by ID, or migrate existing fal (fal.ai) code to Yir. Requires YIR_API_KEY.
+description: Generate and edit images, and generate videos, audio (music, sound effects, speech) and 3D models, through Yir, the image & video API router (GPT Image, Nano Banana, Seedream, FLUX, Seedance, Veo, Kling, Wan and more under one API key). Use when the user asks to create an image from text, edit or restyle an image from a local file or URL, make a video from text or from a first frame / reference image, make a song, instrumental track, cover of an uploaded song or sound effect, read text aloud as speech (text-to-speech / voiceover), make a 3D model (.glb) from text, one image or several views, produce a set of images or clips for a page, deck or article in one batch, compare or pick image/video/audio models and prices, check, download or cancel a Yir job by ID, or migrate existing fal (fal.ai) code to Yir. Requires YIR_API_KEY.
 ---
 
-# Yir image, video and audio jobs
+# Yir image, video, audio and 3D jobs
 
 All calls go through one zero-dependency script (Node.js 18+). Run it from this skill's directory:
 
@@ -13,7 +13,7 @@ node scripts/yir.mjs --help
 
 It reads `YIR_API_KEY` from the environment. If it is missing or rejected (`YIR_UNAUTHORIZED`), tell the user to create an API Key in the Yir Console at https://yir.ai and export it as `YIR_API_KEY`. Never print or write the key.
 
-If the Yir MCP server is already connected (tools such as `list_models`, `quote` and `generate` from server `yir`) and `YIR_API_KEY` is not set, use those tools for single jobs instead of asking for a key: same workflow, quote first, tell the user the price, the official price and the saving, and pass the approved amount as `max_cost`. Use this script when files must be saved locally or for batches.
+If the Yir MCP server is already connected (tools such as `list_models`, `quote` and `generate` from server `yir`) and `YIR_API_KEY` is not set, use those tools for single jobs instead of asking for a key (3D jobs use type `3d`): same workflow, quote first, tell the user the price, the official price and the saving, and pass the approved amount as `max_cost`. Use this script when files must be saved locally or for batches.
 
 ## Account API: analytics and settings
 
@@ -28,13 +28,13 @@ Use **Gateway Key** (`YIR_API_KEY`, `yir_sk_`) for generation commands. Use a se
 
 ## Workflow
 
-1. **Pick a model.** `node scripts/yir.mjs models --type image` (or `--type video`, `--type audio`) lists model IDs and input modes (`text`, `image`, `reference`). If the user named a model, use its ID as listed (`creator/model`).
+1. **Pick a model.** `node scripts/yir.mjs models --type image` (or `--type video`, `--type audio`, `--type 3d`) lists model IDs and input modes (`text`, `image`, `reference`, `multiview`). If the user named a model, use its ID as listed (`creator/model`).
 2. **Check parameters and prices.** `node scripts/yir.mjs model <creator/model>` shows each parameter's allowed values and default, accepted reference roles, and listed prices per spec. Omitted required parameters are filled with the defaults.
    For images, keep the lowest resolution (usually the default `1K`): it is enough for web pages, articles, chat and drafts, and 2K/4K often cost 2–5× more. Go higher only when the user asks for it; if you think the use needs it (print, large displays, heavy cropping), quote it and confirm the price with the user first.
    When exact output pixels are requested, inspect the model for optional `size` and pass `--param size=WIDTHxHEIGHT`. Never approximate a requested size with a resolution tier. Omit `resolution`/`aspect_ratio` to let the Gateway derive them from its exact-size declaration, or pass matching explicit values; conflicts are rejected. Initially only Seedream 5.0 Pro official image sizes are declared; unsupported models/channels (including video sizes) fail explicitly. If `size` is omitted, existing defaults remain unchanged.
    For an explicit video frame rate, inspect optional `fps` and pass `--param fps=24` only when declared. Initially only the official Google route for `google/veo-3.1-generate-001` declares native 24 FPS. Unsupported rates/channels are rejected without interpolation or transcoding. Omit FPS to preserve existing behavior; the Gateway must have FPS support deployed.
    First-frame video may omit `--prompt` only when the model input contract declares `prompt_optional`; initially this is the official Google Veo 3.1 route. Do not invent text. Text-only inputs still require a prompt. The Gateway enforces channel eligibility.
-3. **Quote before every job and get the user's OK**: `node scripts/yir.mjs quote image|video|audio <same options as the job>`. It creates no Job and charges nothing. Check `supply.available` and `expected_amount` (USD; it includes reference-image input charges, fall back to `price.amount` when absent). Before submitting, tell the user in one line the model and spec, the Yir price, and, when `vs_official` is present, the official price (prefix `≈` when `official_is_estimate`) and the saving in USD and percent, e.g. `GPT Image 2 · 1K 16:9: $0.0085 (official ≈ $0.032, you save $0.024 / 74%). Generate?`. When `vs_official` is null, say the official price is not available; never invent one. Submit only after the user agrees, passing the agreed amount as `--max-cost` with a little headroom. Skip the question only when the user has already approved a budget that covers this job; still mention the price and saving. Quote does not download URL references: with a URL reference video or audio, an available quote can have no amount (`complete_price_unavailable`). For the exact price, download the file and pass it as a local path, which the script uploads.
+3. **Quote before every job and get the user's OK**: `node scripts/yir.mjs quote image|video|audio|3d <same options as the job>`. It creates no Job and charges nothing. Check `supply.available` and `expected_amount` (USD; it includes reference-image input charges, fall back to `price.amount` when absent). Before submitting, tell the user in one line the model and spec, the Yir price, and, when `vs_official` is present, the official price (prefix `≈` when `official_is_estimate`) and the saving in USD and percent, e.g. `GPT Image 2 · 1K 16:9: $0.0085 (official ≈ $0.032, you save $0.024 / 74%). Generate?`. When `vs_official` is null, say the official price is not available; never invent one. Submit only after the user agrees, passing the agreed amount as `--max-cost` with a little headroom. Skip the question only when the user has already approved a budget that covers this job; still mention the price and saving. Quote does not download URL references: with a URL reference video or audio, an available quote can have no amount (`complete_price_unavailable`). For the exact price, download the file and pass it as a local path, which the script uploads.
 4. **Submit.** The script polls until the Job is terminal, downloads results to `--out` (default `./yir-output`) and prints a JSON summary with local `files[].path`, `charged_usd` and `final_provider`. Show the user the local paths.
 
 Give results meaningful names with `--name` (e.g. `--name hero-desktop`). Every saved result gets a `<name>.json` sidecar with the prompt, parameters, references, channel, Job ID and charge, so the asset can be reproduced or credited later. Keep it next to the file.
@@ -55,7 +55,7 @@ When the user needs several images or clips, write a plan file and run it as one
 }
 ```
 
-Each job takes `name` (required, unique, becomes the file name), `type` (`image`, `video` or `audio`), `model`, `prompt`, `params` (merged over the defaults), `image`, `refs` (`role=path`), `lyrics` or `lyrics_file` (songs only), `duration` (same as `params.duration`), `routing` and `max_cost`. Local paths are relative to the plan file.
+Each job takes `name` (required, unique, becomes the file name), `type` (`image`, `video`, `audio` or `3d`; 3D options go in `params`, e.g. `{"texture":"none"}`), `model`, `prompt`, `params` (merged over the defaults), `image`, `refs` (`role=path`), `lyrics` or `lyrics_file` (songs only), `duration` (same as `params.duration`), `routing` and `max_cost`. Local paths are relative to the plan file.
 
 ```sh
 node scripts/yir.mjs batch plan.json --dry-run --out ./assets        # validate and quote every job; submits nothing
@@ -118,13 +118,18 @@ node scripts/yir.mjs audio -m elevenlabs/sound-effects-v2 --prompt "heavy wooden
 node scripts/yir.mjs audio -m minimax/speech-2.8-hd --prompt "清晨六点，城市还没有完全醒来。" -p "voice=Chinese (Mandarin)_News_Anchor"
 node scripts/yir.mjs audio -m elevenlabs/eleven-v3 --prompt "[whispers] The sea was finally quiet."
 
+# 3D model (.glb) from text, from one picture, or from several views of the same object (see 3D below)
+node scripts/yir.mjs 3d -m tripo/tripo-h3.1 --prompt "a weathered bronze fox statue on a round base" --texture standard
+node scripts/yir.mjs 3d -m microsoft/trellis-2 --image ./product.png
+node scripts/yir.mjs 3d -m tencent/hunyuan-3d-3.1-pro --ref front_view=./front.png --ref back_view=./back.png --texture none
+
 # Existing jobs
 node scripts/yir.mjs job <id>                       # status, billing, result links
 node scripts/yir.mjs job <id> --wait --download     # wait, then save results
 node scripts/yir.mjs cancel <id>
 ```
 
-Options: `-p key=value` (repeatable), `--image` (reference_image for image jobs, first_frame for video jobs), `--ref role=src` (repeatable), `--lyrics TEXT` / `--lyrics-file PATH` (songs), `--duration SEC` (same as `-p duration=SEC`), `--max-cost USD` (caps the Job's total charge), `--out DIR`, `--name STEM`, `--no-wait`, `--timeout SEC` (default 600 image, 1800 video, 900 music), `--routing JSON`.
+Options: `-p key=value` (repeatable), `--image` (reference_image for image jobs, first_frame for video jobs), `--ref role=src` (repeatable), `--lyrics TEXT` / `--lyrics-file PATH` (songs), `--texture`, `--pbr`, `--face-limit N`, `--topology` (3D), `--duration SEC` (same as `-p duration=SEC`), `--max-cost USD` (caps the Job's total charge), `--out DIR`, `--name STEM`, `--no-wait`, `--timeout SEC` (default 600 image, 1800 video, 900 music, 1800 3d), `--routing JSON`.
 
 ## Audio
 
@@ -154,6 +159,23 @@ Text-to-speech models also run through `audio`. `--prompt` is the exact text to 
 Only preset voices are available; voice cloning is not offered. A wrong voice ID fails the Job without a charge.
 
 There is no tempo or key control. Each delivered track is saved with its type's extension (`.mp3`, or `.wav` for Music 3); two tracks save as `<name>-1` and `<name>-2`. The measured length is `files[].duration_ms` in the summary and `durations` in the sidecar, which also records the lyrics. Tell the user the length.
+
+## 3D
+
+`3d` makes one textured or untextured mesh per Job and saves it as `.glb` (opens in Blender, three.js or any glTF viewer). Pick one input form; the script checks it against the model contract and rejects other combinations before quoting:
+
+- **Text-to-3D:** `--prompt "..."` describing one object.
+- **Image-to-3D:** `--image PATH|URL` (same as `--ref reference_image=...`), exactly one picture, no prompt. One object on a plain background, filling most of the frame, works best.
+- **Multiview:** `--ref front_view=...` plus at least one of `left_view`, `back_view`, `right_view` (each at most once), no prompt. Only models that list `multiview` under `models --type 3d`.
+
+Options (omit them for the model defaults; `model <id>` shows the allowed values): `--texture none|standard|hd` (`none` is a bare mesh), `--pbr` (metallic, roughness and normal maps on top of base color; needs a texture; `-p pbr=false` turns off a default of true), `--face-limit N` (target face count within the model range), `--topology triangle|quad`. Texture, PBR, multiview and a custom face count can change the price, so quote the exact options.
+
+- `tripo/tripo-h3.1`: text and image; texture none/standard/hd, PBR on by default. About $0.10-0.30 from text and $0.20-0.40 from an image, by texture.
+- `tencent/hunyuan-3d-3.1-pro`: text, image and multiview; texture none/standard. $0.375, plus $0.15 each for PBR, multiview and a custom face count.
+- `microsoft/trellis-2`: image only; texture standard/hd, always PBR. $0.30.
+- `meshy/meshy-7.1`: text and image; texture none/standard, quad topology available. $0.80 untextured, $1.20 textured.
+
+The summary and sidecar record the delivered face count (`faces`). When the model delivers more than asked (a texture or PBR maps you turned off), the file is still delivered and `parameter_notices` says so; tell the user.
 
 Routing: do not pass `--routing` unless the user asks; Yir picks the channel and fails over by itself. When asked, keys are `only` (list of providers), `variants`, `preference` (`cost` default, or `speed`), `fallback` (boolean), `fidelity` and `accelerate` (boolean), e.g. `--routing '{"preference":"speed"}'`. Do not use `only` to save money: channels outside it cannot take over, so the Job fails when the listed channels fail. To cap spend, use `--max-cost` with headroom over the quote; keep `only` for tests or when the user requires a specific channel.
 

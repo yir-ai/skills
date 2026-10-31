@@ -18,25 +18,29 @@ const PENDING_DIR = ".yir-pending";
 const MEDIA_TYPES = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp",
   ".mp4": "video/mp4", ".webm": "video/webm", ".mp3": "audio/mpeg", ".wav": "audio/wav" };
 const EXTENSIONS = { "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp", "image/gif": ".gif",
-  "video/mp4": ".mp4", "video/webm": ".webm", "video/quicktime": ".mov", "audio/mpeg": ".mp3", "audio/wav": ".wav", "audio/x-wav": ".wav", "audio/wave": ".wav" };
-const REF_ROLES = new Set(["reference_image", "first_frame", "keyframe", "last_frame", "reference_video", "reference_audio"]);
+  "video/mp4": ".mp4", "video/webm": ".webm", "video/quicktime": ".mov", "audio/mpeg": ".mp3", "audio/wav": ".wav", "audio/x-wav": ".wav", "audio/wave": ".wav", "model/gltf-binary": ".glb" };
+const REF_ROLES = new Set(["reference_image", "first_frame", "keyframe", "last_frame", "reference_video", "reference_audio", "front_view", "left_view", "back_view", "right_view"]);
+// 3D multiview roles: one front_view plus at least one other view of the same object.
+const VIEW_ROLES = new Set(["front_view", "left_view", "back_view", "right_view"]);
 const SUBJECT_NAME = /^[A-Za-z][A-Za-z0-9_]{0,31}$/;
 // "audio" is the public name and "music" its permanent alias; internally the audio kind stays "music"
 // because its requests carry operation generate_music.
-const KINDS = ["image", "video", "music"];
+const KINDS = ["image", "video", "music", "3d"];
 const kindOf = name => (name === "audio" ? "music" : name);
-const DEFAULT_TIMEOUT = { image: 600, video: 1800, music: 900 };
+const DEFAULT_TIMEOUT = { image: 600, video: 1800, music: 900, "3d": 1800 };
 // Contract operations each command accepts: the audio endpoints run music, sound-effect and text-to-speech models.
-const OPERATIONS = { image: ["generate_image"], video: ["generate_video"], music: ["generate_music", "generate_sound_effect", "generate_speech"] };
-// Audio endpoints are /v1/audio/...; image and video are /v1/images/... and /v1/videos/...
-const endpoint = kind => `/v1/${kind === "music" ? "audio" : `${kind}s`}`;
+const OPERATIONS = { image: ["generate_image"], video: ["generate_video"], music: ["generate_music", "generate_sound_effect", "generate_speech"], "3d": ["generate_3d"] };
+// Audio endpoints are /v1/audio/..., 3D is /v1/3d/...; image and video are /v1/images/... and /v1/videos/...
+const endpoint = kind => `/v1/${kind === "music" ? "audio" : kind === "3d" ? "3d" : `${kind}s`}`;
+// 3D flags and the contract parameters they set.
+const FLAGS_3D = { texture: "texture", pbr: "pbr", "face-limit": "face_limit", topology: "topology" };
 
-const HELP = `yir ${VERSION} - Yir image, video and audio jobs (https://gateway.yir.ai Standard API)
+const HELP = `yir ${VERSION} - Yir image, video, audio and 3D jobs (https://gateway.yir.ai Standard API)
 
 Usage:
-  node yir.mjs models [--type image|video|audio]    List model IDs, input modes and labels
+  node yir.mjs models [--type image|video|audio|3d] List model IDs, input modes and labels
   node yir.mjs model <creator/model>                Parameters, defaults and per-spec prices
-  node yir.mjs quote <image|video|audio> [generation options]
+  node yir.mjs quote <image|video|audio|3d> [generation options]
                                                     Price and supply check; creates no Job, charges nothing
   node yir.mjs image  --model M --prompt P [options] Text-to-image, or image edit with --image
   node yir.mjs video  --model M --prompt P [options] Text/image/reference-to-video
@@ -45,8 +49,11 @@ Usage:
                                                     Song, instrumental, sound effect or speech (mp3/wav; Suno saves
                                                     two tracks). With --ref, a Suno cover of that song in the
                                                     --prompt style. \`music\` is the old name and still works
+  node yir.mjs 3d     --model M (--prompt P | --image PATH|URL | --ref front_view=... --ref back_view=...)
+                    [--texture none|standard|hd] [--pbr] [--face-limit N] [--topology triangle|quad]
+                                                    Text-to-3D, image-to-3D or multiview-to-3D; saves one .glb
   node yir.mjs batch <plan.json> [--max-total USD] [--concurrency N] [--dry-run]
-                                                    Run many image/video/audio jobs from a plan; re-run resumes
+                                                    Run many image/video/audio/3d jobs from a plan; re-run resumes
   node yir.mjs job <id> [--wait] [--download] [--out DIR]
                                                     Job status, billing and result links
   node yir.mjs cancel <id>                          Request cancellation
@@ -57,7 +64,7 @@ Generation options:
   --param, -p key=value     Model parameter, repeatable (resolution=1K, aspect_ratio=16:9,
                             duration=5, generate_audio=false, size=1024x1024, fps=24). Missing required parameters
                             are filled with the model's defaults.
-  --image PATH|URL          Shorthand reference: reference_image for image, first_frame for video
+  --image PATH|URL          Shorthand reference: reference_image for image and 3d, first_frame for video
   --ref role=PATH|URL       Reference with explicit role, repeatable. Roles: reference_image,
                             first_frame, keyframe, last_frame, reference_video, reference_audio
                             reference_image@NAME=PATH groups photos into character NAME (models
@@ -67,6 +74,8 @@ Generation options:
                             makes NAME a video character (models listing "video characters").
                             audio: one reference_audio=PATH|URL is the source song of a cover
                             (Suno, up to 8 minutes; lyrics rules as for a new song).
+                            3d: one reference_image=PATH|URL (image-to-3D), or front_view plus
+                            at least one of left_view, back_view, right_view (multiview); no prompt.
                             Local files are uploaded through the Files API first.
   --lyrics TEXT             Music: song lyrics (lines separated by newlines, [Verse]/[Chorus] tags allowed)
   --lyrics-file PATH        Music: read the lyrics from a UTF-8 text file
@@ -74,6 +83,11 @@ Generation options:
                             instrumental=true takes no lyrics. Sound effects take no lyrics.
   --duration SEC            Same as -p duration=SEC (video length; music/sound-effect length on
                             length-priced models such as ElevenLabs)
+  --texture T               3d: none (untextured mesh), standard or hd; same as -p texture=T
+  --pbr                     3d: PBR maps on top of base color (needs a texture); -p pbr=false turns
+                            off a model default of true
+  --face-limit N            3d: target face count (range and default per model)
+  --topology T              3d: triangle or quad (where the model offers it)
   --routing JSON            Optional routing override, e.g. '{"preference":"speed"}'.
                             Keys: only, variants, preference, fallback, fidelity, accelerate.
                             Default: let Yir route.
@@ -86,7 +100,7 @@ Generation options:
   --out DIR                 Result directory (default ./yir-output)
   --name STEM               Result file name without extension (default yir-<job id>)
   --no-wait                 Submit and print the Job ID without polling
-  --timeout SEC             Max wait (default 600 image, 1800 video, 900 audio)
+  --timeout SEC             Max wait (default 600 image, 1800 video, 900 audio, 1800 3d)
   --json                    models/model: print raw JSON
 
 Batch options:
@@ -95,9 +109,9 @@ Batch options:
   --dry-run                 Quote every job and print the total; submits nothing
   --retry-failed            Re-submit jobs that failed in an earlier run (default: keep the failure)
 
-Output: quote/image/video/audio/job/cancel/batch print one JSON object on stdout; progress goes to stderr.
+Output: quote/image/video/audio/3d/job/cancel/batch print one JSON object on stdout; progress goes to stderr.
 Each saved result gets a <name>.json sidecar with model, prompt, parameters, channel, Job ID and charge
-(plus lyrics and measured duration for audio).
+(plus lyrics and measured duration for audio, face count for 3d).
 Exit codes: 0 ok, 1 API or job failure, 2 usage error, 3 wait timed out (job still running).
 Environment: YIR_API_KEY (create one in the Console at ${CONSOLE_URL}), YIR_BASE_URL (optional).
 `;
@@ -186,7 +200,7 @@ function parseParams(list = []) {
 function parseRefs(operation, values) {
   const refs = [];
   if (operation === "generate_music" && values.image?.length) throw new UsageError("audio takes no --image; a cover takes one --ref reference_audio=PATH|URL");
-  for (const src of values.image || []) refs.push({ role: operation === "generate_image" ? "reference_image" : "first_frame", src });
+  for (const src of values.image || []) refs.push({ role: operation === "generate_image" || operation === "generate_3d" ? "reference_image" : "first_frame", src });
   for (const item of values.ref || []) {
     const i = item.indexOf("=");
     const [role, subject, extra] = (i > 0 ? item.slice(0, i) : "").split("@");
@@ -195,6 +209,13 @@ function parseRefs(operation, values) {
       throw new UsageError(`--ref reference_image@NAME, reference_video@NAME or reference_audio@NAME=PATH needs NAME of letters, digits or _ starting with a letter (max 32), got "${item}"`);
     }
     refs.push({ role, src: item.slice(i + 1), ...(subject !== undefined ? { subject } : {}) });
+  }
+  if (operation === "generate_3d") {
+    if (refs.some(r => (r.role !== "reference_image" && !VIEW_ROLES.has(r.role)) || r.subject !== undefined)) {
+      throw new UsageError("3d takes --image / --ref reference_image=PATH|URL (one picture), or --ref front_view= plus left_view=, back_view= or right_view= (multiview)");
+    }
+  } else if (refs.some(r => VIEW_ROLES.has(r.role))) {
+    throw new UsageError("front_view, left_view, back_view and right_view are 3d multiview roles");
   }
   // A cover (Suno) remakes exactly one source song.
   if (operation === "generate_music" && refs.length && (refs.length > 1 || refs[0].role !== "reference_audio" || refs[0].subject !== undefined)) {
@@ -207,6 +228,12 @@ function inputMode(operation, refs) {
   if (!refs.length) return "text";
   if (operation === "generate_music") return "reference";
   if (operation === "generate_image") return "image";
+  if (operation === "generate_3d") {
+    const views = refs.filter(r => VIEW_ROLES.has(r.role)).length;
+    if (views && views !== refs.length) throw new UsageError("3d multiview takes only front_view/left_view/back_view/right_view, not reference_image");
+    if (!views && refs.length > 1) throw new UsageError("image-to-3D takes exactly one reference_image; for several views use --ref front_view=... --ref back_view=...");
+    return views ? "multiview" : "image";
+  }
   const framed = refs.some(r => r.role === "first_frame" || r.role === "keyframe" || r.role === "last_frame");
   // A frame input may carry one driving audio (lip sync, e.g. alibaba/wan-2.7); other reference_* roles need reference mode.
   const referenced = refs.some(r => r.role.startsWith("reference_") && !(framed && r.role === "reference_audio"));
@@ -273,15 +300,47 @@ async function getContract(model) {
   return data.model || data;
 }
 
+// Reference roles and counts from the contract's input constraints, checked before quoting (3D).
+function checkReferences(model, mode, c, refs) {
+  if (!c) return;
+  const roles = refs.map(r => r.role);
+  const bad = roles.find(r => c.allowed_reference_roles && !c.allowed_reference_roles.includes(r));
+  if (bad) throw new UsageError(`${model} ${mode} input does not take role ${bad}; roles: ${(c.allowed_reference_roles || []).join(", ")}`);
+  for (const r of c.required_reference_roles || []) if (!roles.includes(r)) throw new UsageError(`${model} ${mode} input needs --ref ${r}=PATH|URL`);
+  for (const [r, n] of Object.entries(c.reference_counts_by_role || {})) {
+    const count = roles.filter(x => x === r).length;
+    if ((n.minimum !== undefined && count < n.minimum) || (n.maximum !== undefined && count > n.maximum)) throw new UsageError(`${model} ${mode} input takes ${n.minimum ?? 0}-${n.maximum ?? ""} ${r}, got ${count}`);
+  }
+  if ((c.min_references !== undefined && refs.length < c.min_references) || (c.max_references !== undefined && refs.length > c.max_references)) {
+    throw new UsageError(`${model} ${mode} input takes ${c.min_references ?? 0}-${c.max_references ?? ""} references, got ${refs.length}`);
+  }
+}
+
+// 3D flags merged into the parameters; each may be given once, as a flag or as -p.
+function with3DFlags(operation, values, params) {
+  const given = Object.keys(FLAGS_3D).filter(k => values[k] !== undefined);
+  if (!given.length) return params;
+  if (operation !== "generate_3d") throw new UsageError("--texture, --pbr, --face-limit and --topology apply to 3d only");
+  const out = { ...params };
+  for (const flag of given) {
+    const name = FLAGS_3D[flag];
+    if (out[name] !== undefined) throw new UsageError(`use --${flag} or -p ${name}=, not both`);
+    if (flag === "face-limit" && !/^[1-9]\d*$/.test(values[flag])) throw new UsageError("--face-limit must be a positive whole number");
+    out[name] = flag === "face-limit" ? Number(values[flag]) : values[flag];
+  }
+  return out;
+}
+
 // Fills required parameters the caller omitted with the model contract defaults. Returns the contract
 // operation too: the audio command runs generate_music, generate_sound_effect and generate_speech models.
-async function withDefaults(model, operation, mode, params) {
+async function withDefaults(model, operation, mode, params, refs = []) {
   const contract = await getContract(model);
   const accepted = OPERATIONS[operation.replace("generate_", "")] || [operation];
   const ops = (contract.operations || []).filter(o => accepted.includes(o.operation));
   if (!ops.length) throw new UsageError(`${model} does not support ${operation.replace("generate_", "")} generation; run \`models\``);
   const op = ops.find(o => (o.input_modes || []).includes(mode));
   if (!op) throw new UsageError(`${model} ${operation} supports input modes ${ops.flatMap(o => o.input_modes).join(", ")}, not "${mode}"`);
+  if (op.operation === "generate_3d") checkReferences(model, mode, op.input_constraints?.[mode], refs);
   const rules = new Map((op.parameters || []).map(p => [p.name, p]));
   for (const [name, value] of Object.entries(params)) {
     const p = rules.get(name);
@@ -300,12 +359,16 @@ async function buildRequest(operation, values, params = parseParams(values.param
   if (!values.model) throw new UsageError("--model is required (see `models`)");
   const refs = parseRefs(operation, values);
   const mode = inputMode(operation, refs);
-  if ((!values.prompt || !values.prompt.trim()) && (operation !== "generate_video" || mode !== "image")) throw new UsageError("--prompt is required");
+  const imageTo3D = operation === "generate_3d" && mode !== "text";
+  if (imageTo3D && values.prompt !== undefined) throw new UsageError(`3d ${mode} input takes no --prompt; the picture${mode === "multiview" ? "s describe" : " describes"} the object`);
+  if ((!values.prompt || !values.prompt.trim()) && (operation !== "generate_video" || mode !== "image") && !imageTo3D) throw new UsageError("--prompt is required");
+  params = with3DFlags(operation, values, params);
   if (values.duration !== undefined) {
     if (params.duration !== undefined) throw new UsageError("use --duration or -p duration=, not both");
     params = { ...params, duration: coerce(String(values.duration)) };
   }
-  const { parameters, operation: contractOperation } = await withDefaults(values.model, operation, mode, params);
+  const { parameters, operation: contractOperation } = await withDefaults(values.model, operation, mode, params, refs);
+  if (contractOperation === "generate_3d" && parameters.texture === "none" && parameters.pbr === true) throw new UsageError("pbr=true needs a texture; drop --pbr or pick --texture standard");
   const lyrics = await readLyrics(contractOperation, values, parameters);
   const input = { type: mode, prompt: values.prompt, ...(lyrics ? { lyrics } : {}), ...(mode === "text" ? {} : { references: await resolveRefs(refs) }) };
   const body = { model: values.model, input, parameters };
@@ -432,6 +495,9 @@ async function writeSidecar(job, outDir, stem, paths, request) {
   // Measured playback length of audio results.
   const timed = (job.result?.files || []).map((f, i) => f.duration_ms && paths[i] ? { file: basename(paths[i]), duration_ms: f.duration_ms } : null).filter(Boolean);
   if (timed.length) meta.durations = timed;
+  // Measured triangle count of 3D results.
+  const meshes = (job.result?.files || []).map((f, i) => f.faces && paths[i] ? { file: basename(paths[i]), faces: f.faces } : null).filter(Boolean);
+  if (meshes.length) meta.faces = meshes;
   await writeFile(resolve(join(outDir, `${stem}.json`)), `${JSON.stringify(meta, null, 2)}\n`);
 }
 
@@ -464,7 +530,7 @@ async function cmdModels(values) {
   const data = await api("GET", "/v1/models?include=parameters");
   if (values.json) return print(data), 0;
   const type = values.type && kindOf(values.type);
-  if (type && !KINDS.includes(type)) throw new UsageError("--type must be image, video or audio");
+  if (type && !KINDS.includes(type)) throw new UsageError("--type must be image, video, audio or 3d");
   const want = type ? OPERATIONS[type] : null;
   for (const m of data.models || []) {
     const ops = (m.operations || []).filter(o => !want || want.includes(o.operation));
@@ -518,7 +584,7 @@ async function cmdModel(id, values) {
 
 async function cmdQuote(name, values) {
   const kind = kindOf(name);
-  if (!KINDS.includes(kind)) throw new UsageError("usage: quote <image|video|audio> --model M --prompt P ...");
+  if (!KINDS.includes(kind)) throw new UsageError("usage: quote <image|video|audio|3d> --model M --prompt P ...");
   const body = await buildRequest(`generate_${kind}`, values);
   print(summarizeQuote(await api("POST", `${endpoint(kind)}/quotes`, { body })));
   return 0;
@@ -532,7 +598,8 @@ function pendingPath(kind, values) {
   const refs = parseRefs(`generate_${kind}`, values).map(r => ({ role: r.role, src: /^https:\/\//i.test(r.src) || /^file_/.test(r.src) ? r.src : resolve(r.src), ...(r.subject ? { subject: r.subject } : {}) }));
   const id = JSON.stringify([kind, values.model, values.prompt, parseParams(values.param), refs, values.routing ?? null, values["max-cost"] ?? null, values.name ?? null,
     ...(values.duration !== undefined ? [values.duration] : []),
-    ...(kind === "music" ? [values.lyrics ?? null, values["lyrics-file"] === undefined ? null : resolve(values["lyrics-file"])] : [])]);
+    ...(kind === "music" ? [values.lyrics ?? null, values["lyrics-file"] === undefined ? null : resolve(values["lyrics-file"])] : []),
+    ...(kind === "3d" ? Object.keys(FLAGS_3D).map(k => values[k] ?? null) : [])]);
   return resolve(join(values.out || "yir-output", PENDING_DIR, `${createHash("sha256").update(id).digest("hex").slice(0, 32)}.json`));
 }
 
@@ -622,7 +689,7 @@ async function loadPlan(file) {
     if (!NAME.test(job.name || "")) throw new UsageError(`${where}: "name" is required and may use letters, digits, '.', '_' and '-' only`);
     if (seen.has(job.name)) throw new UsageError(`${where}: duplicate name`);
     seen.add(job.name);
-    if (!KINDS.includes(kindOf(job.type))) throw new UsageError(`${where}: "type" must be image, video or audio`);
+    if (!KINDS.includes(kindOf(job.type))) throw new UsageError(`${where}: "type" must be image, video, audio or 3d`);
     const values = {
       model: job.model, prompt: job.prompt, lyrics: job.lyrics, duration: job.duration,
       "lyrics-file": job.lyrics_file === undefined ? undefined : resolve(base, job.lyrics_file),
@@ -881,6 +948,7 @@ async function main(argv) {
       wait: { type: "boolean" }, download: { type: "boolean" }, type: { type: "string" }, json: { type: "boolean" },
       name: { type: "string" }, "max-total": { type: "string" }, concurrency: { type: "string" },
       "dry-run": { type: "boolean" }, "retry-failed": { type: "boolean" },
+      texture: { type: "string" }, pbr: { type: "boolean" }, "face-limit": { type: "string" }, topology: { type: "string" },
     },
   });
   if (values.version) return process.stdout.write(`${VERSION}\n`), 0;
@@ -894,6 +962,7 @@ async function main(argv) {
     case "image": return cmdGenerate("image", values);
     case "video": return cmdGenerate("video", values);
     case "audio": case "music": return cmdGenerate("music", values);
+    case "3d": return cmdGenerate("3d", values);
     case "job": return cmdJob(arg, values);
     case "cancel": return cmdCancel(arg);
     case "batch": return cmdBatch(arg, values);

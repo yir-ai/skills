@@ -20,7 +20,8 @@ async function fixture(t, jobs, state = {jobs:{}}) {
   globalThis.fetch = async (url, opts={}) => {
     const p = new URL(url).pathname;
     let data;
-    if(p==='/v1/models') data={models:[{id:'test/image',operations:[{operation:'generate_image',input_modes:['text']}]},{id:'test/speech',operations:[{operation:'generate_speech',input_modes:['text']}]},{id:'test/music',operations:[{operation:'generate_music',input_modes:['text']}]}]};
+    if(p==='/v1/models') data={models:[{id:'test/image',operations:[{operation:'generate_image',input_modes:['text']}]},{id:'test/speech',operations:[{operation:'generate_speech',input_modes:['text']}]},{id:'test/music',operations:[{operation:'generate_music',input_modes:['text']}]},{id:'test/mesh',operations:[{operation:'generate_3d',input_modes:['image','multiview','text']}]}]};
+    else if(p.includes('/models/test/mesh')||p.includes('/models/test/tripo')) data={operations:[{operation:'generate_3d',input_modes:p.includes('mesh')?['image','multiview','text']:['image','text'],input_constraints:{text:{min_references:0,max_references:0,allowed_reference_roles:[]},image:{min_references:1,max_references:1,allowed_reference_roles:['reference_image'],required_reference_roles:['reference_image']},multiview:{min_references:2,max_references:4,allowed_reference_roles:['front_view','left_view','back_view','right_view'],required_reference_roles:['front_view'],reference_counts_by_role:{front_view:{minimum:1,maximum:1},back_view:{minimum:0,maximum:1},left_view:{minimum:0,maximum:1},right_view:{minimum:0,maximum:1}}}},parameters:[{name:'texture',type:'string',required:false,values:p.includes('mesh')?['none','standard']:['none','standard','hd'],default:'standard'},{name:'pbr',type:'boolean',required:false,values:[false,true],default:false},{name:'face_limit',type:'integer',required:false,default:500000,minimum:40000,maximum:1500000},{name:'topology',type:'string',required:false,values:['triangle'],default:'triangle'},{name:'n',type:'integer',required:false,values:[1],default:1}]}]};
     else if(p.includes('/models/test/speech')) data={operations:[{operation:'generate_speech',input_modes:['text'],parameters:[{name:'voice',type:'string',required:false,default:'English_expressive_narrator',control:'text'},{name:'n',type:'integer',required:false,values:[1]}]}]};
     else if(p.includes('/models/test/suno')) data={operations:[{operation:'generate_music',input_modes:['text','reference'],parameters:[{name:'instrumental',type:'boolean',required:false,default:false},{name:'lyrics_optimizer',type:'boolean',required:false,default:false},{name:'n',type:'integer',required:false,values:[2],default:2}]}]};
     else if(p==='/v1/files') { const meta=JSON.parse(opts.body).files[0]; await appendFile(process.env.CALLS+'.files',JSON.stringify(meta)+'\\n'); data={files:[{id:'file_11111111-1111-4111-8111-111111111111',status:'ready'}]}; }
@@ -35,7 +36,7 @@ async function fixture(t, jobs, state = {jobs:{}}) {
       if(process.env.FAIL_STATUS==='1') return new Response(JSON.stringify({error:{code:'YIR_UNAUTHORIZED',retryable:false}}),{status:401});
       data={status:'succeeded'};
     }
-    else if(p.startsWith('/v1/jobs/')) data={id:p.split('/').at(-1),status:'succeeded',billing:{status:process.env.PENDING_BILL==='1'?'pending':'settled',total_charged_by_yir:p.endsWith('/1')?'0.08':'0.05'},result:{availability:'available',files:process.env.MUSIC==='2'?[{url:'https://mock/asset',media_type:'audio/mpeg',duration_ms:150000},{url:'https://mock/asset',media_type:'audio/wav',duration_ms:140000}]:[process.env.MUSIC==='1'?{url:'https://mock/asset',media_type:'audio/mpeg',duration_ms:151230}:{url:'https://mock/asset',media_type:'image/png'}]}};
+    else if(p.startsWith('/v1/jobs/')) data={id:p.split('/').at(-1),status:'succeeded',billing:{status:process.env.PENDING_BILL==='1'?'pending':'settled',total_charged_by_yir:p.endsWith('/1')?'0.08':'0.05'},result:{availability:'available',files:process.env.MESH==='1'?[{url:'https://mock/asset',media_type:'model/gltf-binary',faces:79876}]:process.env.MUSIC==='2'?[{url:'https://mock/asset',media_type:'audio/mpeg',duration_ms:150000},{url:'https://mock/asset',media_type:'audio/wav',duration_ms:140000}]:[process.env.MUSIC==='1'?{url:'https://mock/asset',media_type:'audio/mpeg',duration_ms:151230}:{url:'https://mock/asset',media_type:'image/png'}]}};
     else if(p==='/asset') return new Response('image',{status:process.env.FAIL_DOWNLOAD==='1'?503:200});
     else throw Error('unexpected '+p);
     return new Response(JSON.stringify(data));
@@ -320,4 +321,65 @@ test('dry run compares each quote with the official price and sums the savings',
 test('dry run without an official price reports no savings',async t=>{
  const f=await fixture(t,['a']);const r=await f.run(['--dry-run']);
  const out=JSON.parse(r.stdout);assert.equal(out.vs_official,null);assert.equal(out.jobs[0].vs_official,null);
+});
+
+test('3d: text, image and multiview requests go to /v1/3d with flags as parameters and save a .glb', async t => {
+ const f=await fixture(t,['unused']);
+ const mock=join(f.dir,'mock.mjs'); const env={...process.env,YIR_API_KEY:'mock',YIR_BASE_URL:'https://mock',CALLS:join(f.dir,'calls'),MESH:'1'};
+ const cli=args=>exec(process.execPath,['--import',pathToFileURL(mock).href,script,'3d','-m','test/mesh','--out',f.dir,...args],{env});
+ const r=await cli(['--prompt','a wooden chair','--texture','standard','--pbr','--face-limit','80000','--name','chair']);
+ const out=JSON.parse(r.stdout); assert.equal(out.files[0].faces,79876); assert.match(out.files[0].path,/chair\.glb$/);
+ assert.deepEqual(JSON.parse(await readFile(join(f.dir,'chair.json'),'utf8')).faces,[{file:'chair.glb',faces:79876}]);
+ await cli(['--image','https://example.com/chair.png','--no-wait']);
+ await writeFile(join(f.dir,'front.png'),'png');
+ await cli(['--ref',`front_view=${join(f.dir,'front.png')}`,'--ref','back_view=https://example.com/back.png','-p','texture=none','--no-wait']);
+ const calls=(await readFile(join(f.dir,'calls'),'utf8')).trim().split('\n').map(JSON.parse);
+ assert.deepEqual(calls[0],{model:'test/mesh',input:{type:'text',prompt:'a wooden chair'},parameters:{texture:'standard',pbr:true,face_limit:80000}});
+ assert.deepEqual(calls[1].input,{type:'image',references:[{role:'reference_image',url:'https://example.com/chair.png'}]});
+ assert.deepEqual(calls[1].parameters,{});
+ assert.deepEqual(calls[2].input,{type:'multiview',references:[{role:'front_view',file_id:'file_11111111-1111-4111-8111-111111111111'},{role:'back_view',url:'https://example.com/back.png'}]});
+ assert.deepEqual(calls[2].parameters,{texture:'none'});
+ assert.deepEqual((await readFile(join(f.dir,'calls.paths'),'utf8')).trim().split('\n'),['/v1/3d/generations','/v1/3d/generations','/v1/3d/generations']);
+ const q=await exec(process.execPath,['--import',pathToFileURL(mock).href,script,'quote','3d','-m','test/mesh','--prompt','a lamp','--topology','triangle'],{env});
+ assert.equal(JSON.parse(q.stdout).expected_amount,'0.05');
+ assert.equal((await readFile(join(f.dir,'calls.paths'),'utf8')).trim().split('\n').at(-1),'/v1/3d/quotes');
+});
+test('3d: unsupported inputs and values are refused from the contract before any quote or submit', async t => {
+ const f=await fixture(t,['unused']);
+ const mock=join(f.dir,'mock.mjs'); const env={...process.env,YIR_API_KEY:'mock',YIR_BASE_URL:'https://mock',CALLS:join(f.dir,'calls')};
+ const img='https://example.com/a.png';
+ for (const [args,msg] of [
+  [['3d','-m','test/mesh','--prompt','chair','--image',img],/takes no --prompt/],
+  [['3d','-m','test/mesh','--ref',`front_view=${img}`,'--prompt','chair'],/takes no --prompt/],
+  [['3d','-m','test/mesh'],/--prompt is required/],
+  [['3d','-m','test/mesh','--image',img,'--image',img],/exactly one reference_image/],
+  [['3d','-m','test/mesh','--ref',`front_view=${img}`,'--ref',`reference_image=${img}`],/only front_view/],
+  [['3d','-m','test/mesh','--ref',`back_view=${img}`,'--ref',`left_view=${img}`],/needs --ref front_view/],
+  [['3d','-m','test/mesh','--ref',`front_view=${img}`],/2-4 references/],
+  [['3d','-m','test/mesh','--ref',`front_view=${img}`,'--ref',`front_view=${img}`],/1-1 front_view, got 2/],
+  [['3d','-m','test/mesh','--ref',`first_frame=${img}`],/3d takes --image/],
+  [['3d','-m','test/tripo','--ref',`front_view=${img}`,'--ref',`back_view=${img}`],/not "multiview"/],
+  [['3d','-m','test/mesh','--prompt','chair','--texture','hd'],/texture="hd" is not allowed/],
+  [['3d','-m','test/mesh','--prompt','chair','--topology','quad'],/topology="quad" is not allowed/],
+  [['3d','-m','test/mesh','--prompt','chair','--face-limit','100'],/outside 40000\.\.1500000/],
+  [['3d','-m','test/mesh','--prompt','chair','--face-limit','many'],/positive whole number/],
+  [['3d','-m','test/mesh','--prompt','chair','--texture','none','--pbr'],/pbr=true needs a texture/],
+  [['3d','-m','test/mesh','--prompt','chair','--texture','none','-p','texture=none'],/not both/],
+  [['3d','-m','test/mesh','--prompt','chair','-p','n=2'],/n=2 is not allowed/],
+  [['image','-m','test/image','--prompt','chair','--texture','none'],/apply to 3d only/],
+  [['video','-m','test/video','--prompt','chair','--ref',`front_view=${img}`],/3d multiview roles/],
+  [['3d','-m','test/image','--prompt','chair'],/does not support 3d/],
+ ]) {
+  await assert.rejects(()=>exec(process.execPath,['--import',pathToFileURL(mock).href,script,...args,'--out',f.dir],{env}),e=>e.code===2&&msg.test(e.stderr),msg.source);
+ }
+ assert.equal(await readFile(join(f.dir,'calls.paths'),'utf8').catch(()=>''),'');
+});
+test('3d batch quotes and submits on the 3d endpoints; models --type 3d lists 3D models only', async t => {
+ const f=await fixture(t,['statue']); const path=join(f.dir,'plan.json'); const plan=JSON.parse(await readFile(path,'utf8'));
+ plan.defaults.type='3d'; plan.defaults.model='test/mesh'; plan.jobs[0].params={texture:'standard'}; await writeFile(path,JSON.stringify(plan));
+ const r=await f.run([],{MESH:'1'}); assert.equal(r.code,0,r.stderr);
+ assert.deepEqual(r.paths,['/v1/3d/quotes','/v1/3d/generations']);
+ assert.deepEqual(r.calls[0].input,{type:'text',prompt:'test'}); assert.deepEqual(r.state.jobs.statue.files,['statue.glb']);
+ const m=await exec(process.execPath,['--import',pathToFileURL(join(f.dir,'mock.mjs')).href,script,'models','--type','3d'],{env:{...process.env,YIR_API_KEY:'mock',YIR_BASE_URL:'https://mock'}});
+ assert.match(m.stdout,/test\/mesh\t3d\[image,multiview,text\]/); assert.doesNotMatch(m.stdout,/test\/image/);
 });
