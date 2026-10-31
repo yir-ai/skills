@@ -120,8 +120,8 @@ node scripts/yir.mjs audio -m elevenlabs/eleven-v3 --prompt "[whispers] The sea 
 
 # 3D model (.glb) from text, from one picture, or from several views of the same object (see 3D below)
 node scripts/yir.mjs 3d -m tripo/tripo-h3.1 --prompt "a weathered bronze fox statue on a round base" --texture standard
-node scripts/yir.mjs 3d -m microsoft/trellis-2 --image ./product.png
-node scripts/yir.mjs 3d -m tencent/hunyuan-3d-3.1-pro --ref front_view=./front.png --ref back_view=./back.png --texture none
+node scripts/yir.mjs 3d -m tripo/tripo-p2 --image ./product.png
+node scripts/yir.mjs 3d -m hitem3d/hi3d-v3.0 --ref front_view=./front.png --ref back_view=./back.png --texture none
 
 # Existing jobs
 node scripts/yir.mjs job <id>                       # status, billing, result links
@@ -168,12 +168,12 @@ There is no tempo or key control. Each delivered track is saved with its type's 
 - **Image-to-3D:** `--image PATH|URL` (same as `--ref reference_image=...`), exactly one picture, no prompt. One object on a plain background, filling most of the frame, works best.
 - **Multiview:** `--ref front_view=...` plus at least one of `left_view`, `back_view`, `right_view` (each at most once), no prompt. Only models that list `multiview` under `models --type 3d`.
 
-Options (omit them for the model defaults; `model <id>` shows the allowed values): `--texture none|standard|hd` (`none` is a bare mesh), `--pbr` (metallic, roughness and normal maps on top of base color; needs a texture; `-p pbr=false` turns off a default of true), `--face-limit N` (target face count within the model range), `--topology triangle|quad`. Texture, PBR, multiview and a custom face count can change the price, so quote the exact options.
+Options (omit them for the model defaults; `model <id>` shows the allowed values): `--texture none|standard|hd` (`none` is a bare mesh), `--pbr` (metallic, roughness and normal maps on top of base color; needs a texture; `-p pbr=false` turns off a default of true), `--face-limit N` (target face count within the model range), `--topology triangle|quad`. Texture and PBR can change the price, so quote the exact options.
 
 - `tripo/tripo-h3.1`: text and image; texture none/standard/hd, PBR on by default. About $0.10-0.30 from text and $0.20-0.40 from an image, by texture.
-- `tencent/hunyuan-3d-3.1-pro`: text, image and multiview; texture none/standard. $0.375, plus $0.15 each for PBR, multiview and a custom face count.
-- `microsoft/trellis-2`: image only; texture standard/hd, always PBR. $0.30.
-- `meshy/meshy-7.1`: text and image; texture none/standard, quad topology available. $0.80 untextured, $1.20 textured.
+- `tripo/tripo-p2`: text and image; texture none/standard/hd, PBR on by default, up to 50,000 faces. $1.00 untextured, $1.10 standard, $1.20 hd.
+- `hitem3d/hi3d-v3.0`: image and multiview (no text); texture none/standard, PBR on by default, 100,000-5,000,000 faces. $1.80 for the mesh, plus $0.20 for texture and $0.10 for PBR ($2.10 with the defaults).
+- `meshy/meshy-7.1`: text, image and multiview; texture none/standard, quad topology available. $0.80 untextured, $1.20 textured.
 
 The summary and sidecar record the delivered face count (`faces`). When the model delivers more than asked (a texture or PBR maps you turned off), the file is still delivered and `parameter_notices` says so; tell the user.
 
