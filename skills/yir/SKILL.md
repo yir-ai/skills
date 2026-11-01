@@ -209,6 +209,8 @@ Use this when the user wants existing fal code moved to Yir: `fal_client.subscri
 
 ## Errors
 
+For file-upload replay errors: a failed upload returns non-retryable `400 YIR_INVALID_REQUEST`; an expired file returns `410 YIR_FILE_EXPIRED`. Create a new upload with a new idempotency key. Keep the same key for transient errors (`retryable: true`), including planning in progress.
+
 Failures print `{"error": {code, message, action, retryable, request_id}, "hint": ...}` and exit 1; usage errors exit 2 with a message naming the bad option or allowed values.
 
 - `YIR_INSUFFICIENT_BALANCE` or action `add_funds`: ask the user to top up in the Yir Console at https://yir.ai. Do not retry.
