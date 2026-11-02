@@ -14,7 +14,7 @@
       "homepage": "https://yir.ai/docs/integrations/agent-skill",
       "repository": "https://github.com/yir-ai/skills",
       "license": "MIT",
-      "tags": ["image-generation", "video-generation", "music-generation", "ai-api"]
+      "tags": ["image-generation", "video-generation", "image-to-video", "music-generation", "text-to-speech", "3d-generation", "ai-api"]
     }
   ]
 }
