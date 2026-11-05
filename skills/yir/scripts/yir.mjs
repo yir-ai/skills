@@ -574,9 +574,12 @@ async function cmdModel(id, values) {
   }
   out.push("\nlisted prices (USD per output for that spec, lowest available channel; use `quote` for exact parameters; final charge follows the upstream channel actually billed):");
   for (const s of detail.specifications || []) {
-    const ch = (s.channels || []).filter(c => c.availability === "available" && typeof c.amount_micros === "number");
-    const min = ch.length ? Math.min(...ch.map(c => c.amount_micros)) / 1e6 : null;
-    out.push(`  ${s.operation.replace("generate_", "")} ${s.input_mode}  ${s.specification_label}  ${min === null ? "unavailable" : `$${min}`}  (${ch.length} channel${ch.length === 1 ? "" : "s"})`);
+    const ch = (s.channels || []).filter(c => c.availability === "available");
+    const fixed = ch.filter(c => typeof c.amount_micros === "number");
+    const min = fixed.length ? Math.min(...fixed.map(c => c.amount_micros)) / 1e6 : null;
+    // Usage-priced channels carry no fixed amount; only `quote` can price them.
+    const price = min !== null ? `$${min}` : ch.length ? "usage-priced, see quote" : "unavailable";
+    out.push(`  ${s.operation.replace("generate_", "")} ${s.input_mode}  ${s.specification_label}  ${price}  (${ch.length} channel${ch.length === 1 ? "" : "s"})`);
   }
   process.stdout.write(out.join("\n") + "\n");
   return 0;
