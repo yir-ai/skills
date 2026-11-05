@@ -17,7 +17,7 @@ const BATCH_STATE = ".yir-batch.json";
 const PENDING_DIR = ".yir-pending";
 const MEDIA_TYPES = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp",
   ".mp4": "video/mp4", ".webm": "video/webm", ".mp3": "audio/mpeg", ".wav": "audio/wav" };
-const EXTENSIONS = { "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp", "image/gif": ".gif",
+const EXTENSIONS = { "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp", "image/gif": ".gif", "image/svg+xml": ".svg",
   "video/mp4": ".mp4", "video/webm": ".webm", "video/quicktime": ".mov", "audio/mpeg": ".mp3", "audio/wav": ".wav", "audio/x-wav": ".wav", "audio/wave": ".wav", "model/gltf-binary": ".glb" };
 const REF_ROLES = new Set(["reference_image", "first_frame", "keyframe", "last_frame", "reference_video", "reference_audio", "front_view", "left_view", "back_view", "right_view"]);
 // 3D multiview roles: one front_view plus at least one other view of the same object.

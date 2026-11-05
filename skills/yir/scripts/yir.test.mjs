@@ -36,7 +36,7 @@ async function fixture(t, jobs, state = {jobs:{}}) {
       if(process.env.FAIL_STATUS==='1') return new Response(JSON.stringify({error:{code:'YIR_UNAUTHORIZED',retryable:false}}),{status:401});
       data={status:'succeeded'};
     }
-    else if(p.startsWith('/v1/jobs/')) data={id:p.split('/').at(-1),status:'succeeded',billing:{status:process.env.PENDING_BILL==='1'?'pending':'settled',total_charged_by_yir:p.endsWith('/1')?'0.08':'0.05'},result:{availability:'available',files:process.env.MESH==='1'?[{url:'https://mock/asset',media_type:'model/gltf-binary',faces:79876}]:process.env.MUSIC==='2'?[{url:'https://mock/asset',media_type:'audio/mpeg',duration_ms:150000},{url:'https://mock/asset',media_type:'audio/wav',duration_ms:140000}]:[process.env.MUSIC==='1'?{url:'https://mock/asset',media_type:'audio/mpeg',duration_ms:151230}:{url:'https://mock/asset',media_type:'image/png'}]}};
+    else if(p.startsWith('/v1/jobs/')) data={id:p.split('/').at(-1),status:'succeeded',billing:{status:process.env.PENDING_BILL==='1'?'pending':'settled',total_charged_by_yir:p.endsWith('/1')?'0.08':'0.05'},result:{availability:'available',files:process.env.MESH==='1'?[{url:'https://mock/asset',media_type:'model/gltf-binary',faces:79876}]:process.env.MUSIC==='2'?[{url:'https://mock/asset',media_type:'audio/mpeg',duration_ms:150000},{url:'https://mock/asset',media_type:'audio/wav',duration_ms:140000}]:[process.env.MUSIC==='1'?{url:'https://mock/asset',media_type:'audio/mpeg',duration_ms:151230}:{url:'https://mock/asset',media_type:process.env.RESULT_MEDIA_TYPE||'image/png'}]}};
     else if(p==='/asset') return new Response('image',{status:process.env.FAIL_DOWNLOAD==='1'?503:200});
     else throw Error('unexpected '+p);
     return new Response(JSON.stringify(data));
@@ -268,6 +268,11 @@ test('two-track result saves every audio file with its media-type extension', as
  assert.deepEqual(r.state.jobs.pair.files,['pair-1.mp3','pair-2.wav']);
  const meta=JSON.parse(await readFile(join(f.dir,'pair.json'),'utf8'));
  assert.deepEqual(meta.durations,[{file:'pair-1.mp3',duration_ms:150000},{file:'pair-2.wav',duration_ms:140000}]);
+});
+test('SVG result saves with an svg extension', async t => {
+ const f=await fixture(t,['icon']);
+ const r=await f.run([],{RESULT_MEDIA_TYPE:'image/svg+xml'}); assert.equal(r.code,0,r.stderr);
+ assert.deepEqual(r.state.jobs.icon.files,['icon.svg']);
 });
 test('reference_image@NAME groups photos into a subject and rejects invalid names', async t => {
  const f=await fixture(t,['unused']);
