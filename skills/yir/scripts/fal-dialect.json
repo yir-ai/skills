@@ -2,6 +2,227 @@
   "channel": "fal",
   "yir_contract_schema": "v1",
   "endpoints": {
+    "kling/v4/flash/image-to-video": {
+      "model": "klingai/kling-4.0-flash",
+      "operation": "generate_video",
+      "input_type": "image",
+      "references": {
+        "min": 1,
+        "max": 1,
+        "by_role": {
+          "first_frame": {
+            "minimum": 1,
+            "maximum": 1
+          }
+        }
+      },
+      "fields": {
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        },
+        "start_image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 20
+        },
+        "resolution": {
+          "values": [
+            "720p"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "generate_audio": {
+          "values": [
+            true
+          ],
+          "default": true
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
+    "kling/v4/flash/text-to-video": {
+      "model": "klingai/kling-4.0-flash",
+      "operation": "generate_video",
+      "input_type": "text",
+      "references": {
+        "min": 0,
+        "max": 0
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 20
+        },
+        "resolution": {
+          "values": [
+            "720p"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "21:9"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            true
+          ],
+          "default": true
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
+    "kling/v4/flash/reference-to-video": {
+      "model": "klingai/kling-4.0-flash",
+      "operation": "generate_video",
+      "input_type": "reference",
+      "references": {
+        "min": 1,
+        "max": 11,
+        "by_role": {
+          "reference_image": {
+            "minimum": 0,
+            "maximum": 10
+          },
+          "reference_video": {
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
+        },
+        "elements": {
+          "kind": "unsupported",
+          "note": "Yir does not support element inputs"
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": false
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        },
+        "start_image_url": {
+          "kind": "unsupported",
+          "note": "Yir klingai/kling-4.0-flash reference mode does not accept first_frame files"
+        },
+        "video_urls": {
+          "kind": "reference",
+          "role": "reference_video",
+          "required": false
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 20
+        },
+        "resolution": {
+          "values": [
+            "720p"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto",
+            "16:9",
+            "9:16",
+            "1:1",
+            "21:9"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            true
+          ],
+          "default": true
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
     "alibaba/happy-horse/v1.1/image-to-video": {
       "model": "alibaba/happyhorse-1.1",
       "operation": "generate_video",
@@ -7900,6 +8121,10 @@
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "target_audio_url": {
+          "kind": "unsupported",
+          "note": "Yir does not support lip-sync to target audio"
         }
       },
       "yir_parameters": {
@@ -8199,6 +8424,10 @@
           "kind": "delivery",
           "fal_default": false,
           "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "target_audio_url": {
+          "kind": "unsupported",
+          "note": "Yir does not support lip-sync to target audio"
         }
       },
       "yir_parameters": {
