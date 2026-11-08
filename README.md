@@ -68,7 +68,7 @@ node skills/yir/scripts/yir.mjs models --type image
 node skills/yir/scripts/yir.mjs model openai/gpt-image-2
 node skills/yir/scripts/yir.mjs quote image -m openai/gpt-image-2 --prompt "a lighthouse at dusk"
 node skills/yir/scripts/yir.mjs image -m openai/gpt-image-2 --prompt "a lighthouse at dusk" -p aspect_ratio=16:9
-node skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "waves at night" -p duration=4
+node skills/yir/scripts/yir.mjs video -m bytedance/seedance-2.0-mini --prompt "waves at night" -p duration=5
 node skills/yir/scripts/yir.mjs audio -m minimax/music-2.6 --prompt "warm indie pop, female vocal" --lyrics-file ./lyrics.txt
 node skills/yir/scripts/yir.mjs audio -m elevenlabs/sound-effects-v2 --prompt "heavy wooden door creaking open" --duration 4
 node skills/yir/scripts/yir.mjs job <id> --wait --download

@@ -52,7 +52,7 @@ When the user needs several images or clips, write a plan file and run it as one
     { "name": "hero", "prompt": "..." },
     { "name": "feature-edit", "prompt": "...", "image": "./before.png" },
     { "name": "hero-mobile", "prompt": "...", "params": { "aspect_ratio": "9:16" } },
-    { "name": "demo-clip", "type": "video", "model": "bytedance/seedance-1.5-pro", "prompt": "...", "refs": ["first_frame=./hero.png"], "params": { "duration": 5 } }
+    { "name": "demo-clip", "type": "video", "model": "bytedance/seedance-2.0-mini", "prompt": "...", "refs": ["first_frame=./hero.png"], "params": { "duration": 5 } }
   ]
 }
 ```
@@ -84,7 +84,7 @@ node scripts/yir.mjs image -m openai/gpt-image-2.6-flare --prompt "she waves, th
 node scripts/yir.mjs image -m openai/gpt-image-2.6-flare --prompt "..." -p output_format=svg -p resolution=1K -p aspect_ratio=1:1 -p quality=low
 
 # Text to video
-node scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "..." -p duration=4 -p resolution=480p
+node scripts/yir.mjs video -m bytedance/seedance-2.0-mini --prompt "..." -p duration=5 -p resolution=480p
 
 # First-frame video, optional last frame
 node scripts/yir.mjs video -m <model> --prompt "..." --ref first_frame=./start.png --ref last_frame=./end.png
