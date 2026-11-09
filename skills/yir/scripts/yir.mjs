@@ -556,6 +556,7 @@ async function cmdModel(id, values) {
     out.push(`\n${op.operation}  input modes: ${op.input_modes.join(", ")}`);
     for (const [mode, c] of Object.entries(op.input_constraints || {})) {
       if (c.max_references) out.push(`  ${mode}: ${c.min_references}-${c.max_references} references, roles ${c.allowed_reference_roles.join(", ")}`);
+      if (c.max_prompt_characters) out.push(`  ${mode}: prompt up to ${c.max_prompt_characters} characters`);
       const s = c.subject_references;
       if (s) {
         const spec = [s.resolutions && `resolution ${s.resolutions.join("/")}`, s.aspect_ratios && `aspect_ratio ${s.aspect_ratios.join("/")}`,
