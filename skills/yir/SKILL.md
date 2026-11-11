@@ -107,8 +107,12 @@ node scripts/yir.mjs video -m klingai/kling-3.0 --prompt "@hero hands a coffee t
   --ref reference_image@hero=./hero-front.png --ref reference_image@hero=./hero-side.png \
   --ref reference_image@friend=./friend-front.png --ref reference_image@friend=./friend-side.png
 
-# Edit a video (Seedance 2.5): output length and aspect follow the input video
-node scripts/yir.mjs video -m bytedance/seedance-2.5 --prompt "replace the man with a woman in a red coat" --ref reference_video=./clip.mp4 -p duration=auto -p aspect_ratio=auto
+# Edit a video (Seedance 2.5): a 4-30 s clip; output length and aspect follow it
+node scripts/yir.mjs video -m bytedance/seedance-2.5 --prompt "replace the man with a woman in a red coat" --ref reference_video=./clip.mp4 -p task_type=edit
+
+# New video that copies a clip's motion (Seedance 2.5): describe the motion, not "replace" or "copy exactly",
+# or the model may treat it as an edit and keep the original subject
+node scripts/yir.mjs video -m bytedance/seedance-2.5 --prompt "the dog from @image1 trots down the stairs like the dog in @video1"   --ref reference_video=./walk.mp4 --ref reference_image=./dog.png -p task_type=reference -p duration=5 -p aspect_ratio=9:16
 
 # Song with lyrics, instrumental, or lyrics written from the prompt (see Audio below)
 node scripts/yir.mjs audio -m minimax/music-2.6 --prompt "warm indie pop, female vocal, summer evening" --lyrics-file ./lyrics.txt
