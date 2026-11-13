@@ -358,10 +358,12 @@ async function withDefaults(model, operation, mode, params, refs = []) {
 async function buildRequest(operation, values, params = parseParams(values.param)) {
   if (!values.model) throw new UsageError("--model is required (see `models`)");
   const refs = parseRefs(operation, values);
-  const mode = inputMode(operation, refs);
+  const layers = operation === "generate_image" && params.max_images !== undefined;
+  if (layers && (refs.length !== 1 || refs[0].role !== "reference_image")) throw new UsageError("layer decomposition requires exactly one reference image");
+  const mode = layers ? "layer_decomposition" : inputMode(operation, refs);
   const imageTo3D = operation === "generate_3d" && mode !== "text";
   if (imageTo3D && values.prompt !== undefined) throw new UsageError(`3d ${mode} input takes no --prompt; the picture${mode === "multiview" ? "s describe" : " describes"} the object`);
-  if ((!values.prompt || !values.prompt.trim()) && (operation !== "generate_video" || mode !== "image") && !imageTo3D) throw new UsageError("--prompt is required");
+  if ((!values.prompt || !values.prompt.trim()) && (operation !== "generate_video" || mode !== "image") && !imageTo3D && !layers) throw new UsageError("--prompt is required");
   params = with3DFlags(operation, values, params);
   if (values.duration !== undefined) {
     if (params.duration !== undefined) throw new UsageError("use --duration or -p duration=, not both");

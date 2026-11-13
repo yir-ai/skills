@@ -78,6 +78,10 @@ node scripts/yir.mjs image -m openai/gpt-image-2 --prompt "..." -p resolution=1K
 # Image edit / image-to-image: local file, https URL or an uploaded file_ id
 node scripts/yir.mjs image -m openai/gpt-image-2 --prompt "make the sky stormy" --image ./photo.png
 
+# Seedream 5.5 layer decomposition: one base image and transparent layers
+node scripts/yir.mjs quote image -m bytedance/seedream-5.5 --image ./poster.png -p resolution=1K -p max_images=6
+node scripts/yir.mjs image -m bytedance/seedream-5.5 --image ./poster.png -p resolution=1K -p max_images=6 --max-cost <approved-USD>
+
 # Animated GIF (text or reference images) or vector SVG (text only), GPT Image 2.6
 node scripts/yir.mjs image -m openai/gpt-image-2.6-flare --prompt "..." -p output_format=gif -p frame_count=8 -p frame_duration_ms=120 -p quality=low
 node scripts/yir.mjs image -m openai/gpt-image-2.6-flare --prompt "she waves, then returns to the first pose, seamless loop" --image ./photo.png -p output_format=gif -p frame_count=8 -p quality=low
