@@ -223,6 +223,834 @@
         }
       }
     },
+    "fal-ai/kling-video/o3/standard/text-to-video": {
+      "model": "klingai/kling-3.0-omni",
+      "operation": "generate_video",
+      "input_type": "text",
+      "references": {
+        "min": 0,
+        "max": 0
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "5"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": false
+        },
+        "multi_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p",
+            "4K"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": false
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      },
+      "fixed_parameters": {
+        "resolution": "720p"
+      }
+    },
+    "fal-ai/kling-video/o3/standard/image-to-video": {
+      "model": "klingai/kling-3.0-omni",
+      "operation": "generate_video",
+      "input_type": "image",
+      "references": {
+        "min": 1,
+        "max": 2,
+        "by_role": {
+          "first_frame": {
+            "minimum": 1,
+            "maximum": 1
+          },
+          "last_frame": {
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "fields": {
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "5"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "end_image_url": {
+          "kind": "reference",
+          "role": "last_frame",
+          "required": false
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": false
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
+        "multi_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p",
+            "4K"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": false
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      },
+      "fixed_parameters": {
+        "resolution": "720p"
+      }
+    },
+    "fal-ai/kling-video/o3/standard/reference-to-video": {
+      "model": "klingai/kling-3.0-omni",
+      "operation": "generate_video",
+      "input_type": "reference",
+      "references": {
+        "min": 1,
+        "max": 7,
+        "by_role": {
+          "reference_image": {
+            "minimum": 0,
+            "maximum": 7
+          }
+        }
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "5"
+        },
+        "elements": {
+          "kind": "unsupported",
+          "note": "Yir does not support element inputs"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "end_image_url": {
+          "kind": "unsupported",
+          "note": "Yir klingai/kling-3.0-omni reference mode does not accept last_frame files"
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": false
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": false
+        },
+        "multi_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
+        },
+        "start_image_url": {
+          "kind": "unsupported",
+          "note": "Yir klingai/kling-3.0-omni reference mode does not accept first_frame files"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p",
+            "4K"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": false
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      },
+      "fixed_parameters": {
+        "resolution": "720p"
+      }
+    },
+    "fal-ai/kling-video/o3/pro/text-to-video": {
+      "model": "klingai/kling-3.0-omni",
+      "operation": "generate_video",
+      "input_type": "text",
+      "references": {
+        "min": 0,
+        "max": 0
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "5"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": false
+        },
+        "multi_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p",
+            "4K"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": false
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      },
+      "fixed_parameters": {
+        "resolution": "1080p"
+      }
+    },
+    "fal-ai/kling-video/o3/pro/image-to-video": {
+      "model": "klingai/kling-3.0-omni",
+      "operation": "generate_video",
+      "input_type": "image",
+      "references": {
+        "min": 1,
+        "max": 2,
+        "by_role": {
+          "first_frame": {
+            "minimum": 1,
+            "maximum": 1
+          },
+          "last_frame": {
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "fields": {
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "5"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "end_image_url": {
+          "kind": "reference",
+          "role": "last_frame",
+          "required": false
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": false
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
+        "multi_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p",
+            "4K"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": false
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      },
+      "fixed_parameters": {
+        "resolution": "1080p"
+      }
+    },
+    "fal-ai/kling-video/o3/pro/reference-to-video": {
+      "model": "klingai/kling-3.0-omni",
+      "operation": "generate_video",
+      "input_type": "reference",
+      "references": {
+        "min": 1,
+        "max": 7,
+        "by_role": {
+          "reference_image": {
+            "minimum": 0,
+            "maximum": 7
+          }
+        }
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "5"
+        },
+        "elements": {
+          "kind": "unsupported",
+          "note": "Yir does not support element inputs"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "end_image_url": {
+          "kind": "unsupported",
+          "note": "Yir klingai/kling-3.0-omni reference mode does not accept last_frame files"
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": false
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": false
+        },
+        "multi_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
+        },
+        "start_image_url": {
+          "kind": "unsupported",
+          "note": "Yir klingai/kling-3.0-omni reference mode does not accept first_frame files"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p",
+            "4K"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": false
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      },
+      "fixed_parameters": {
+        "resolution": "1080p"
+      }
+    },
+    "fal-ai/kling-video/o3/4k/text-to-video": {
+      "model": "klingai/kling-3.0-omni",
+      "operation": "generate_video",
+      "input_type": "text",
+      "references": {
+        "min": 0,
+        "max": 0
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "5"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": false
+        },
+        "multi_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p",
+            "4K"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": false
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      },
+      "fixed_parameters": {
+        "resolution": "4K"
+      }
+    },
+    "fal-ai/kling-video/o3/4k/image-to-video": {
+      "model": "klingai/kling-3.0-omni",
+      "operation": "generate_video",
+      "input_type": "image",
+      "references": {
+        "min": 1,
+        "max": 2,
+        "by_role": {
+          "first_frame": {
+            "minimum": 1,
+            "maximum": 1
+          },
+          "last_frame": {
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "fields": {
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "5"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "end_image_url": {
+          "kind": "reference",
+          "role": "last_frame",
+          "required": false
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": false
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
+        "multi_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p",
+            "4K"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": false
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      },
+      "fixed_parameters": {
+        "resolution": "4K"
+      }
+    },
+    "fal-ai/kling-video/o3/4k/reference-to-video": {
+      "model": "klingai/kling-3.0-omni",
+      "operation": "generate_video",
+      "input_type": "reference",
+      "references": {
+        "min": 1,
+        "max": 7,
+        "by_role": {
+          "reference_image": {
+            "minimum": 0,
+            "maximum": 7
+          }
+        }
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": "5"
+        },
+        "elements": {
+          "kind": "unsupported",
+          "note": "Yir does not support element inputs"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "end_image_url": {
+          "kind": "unsupported",
+          "note": "Yir klingai/kling-3.0-omni reference mode does not accept last_frame files"
+        },
+        "generate_audio": {
+          "kind": "param",
+          "param": "generate_audio",
+          "fal_default": false
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": false
+        },
+        "multi_prompt": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "shot_type": {
+          "kind": "default_only",
+          "fal_default": "customize"
+        },
+        "start_image_url": {
+          "kind": "unsupported",
+          "note": "Yir klingai/kling-3.0-omni reference mode does not accept first_frame files"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "720p",
+            "1080p",
+            "4K"
+          ],
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            false,
+            true
+          ],
+          "default": false
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      },
+      "fixed_parameters": {
+        "resolution": "4K"
+      }
+    },
     "alibaba/happy-horse/v1.1/image-to-video": {
       "model": "alibaba/happyhorse-1.1",
       "operation": "generate_video",
@@ -608,8 +1436,80 @@
     },
     "alibaba/qwen-image-3/edit": {
       "model": "alibaba/qwen-image-3.0-pro",
+      "operation": "generate_image",
       "input_type": "image",
-      "unsupported": "Yir alibaba/qwen-image-3.0-pro has no image input mode, so alibaba/qwen-image-3/edit cannot be migrated yet"
+      "references": {
+        "min": 1,
+        "max": 3
+      },
+      "fields": {
+        "enable_prompt_expansion": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": null
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "negative_prompt": {
+          "kind": "default_only",
+          "fal_default": ""
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        }
+      },
+      "yir_parameters": {
+        "resolution": {
+          "values": [
+            "1K",
+            "2K"
+          ],
+          "default": "1K"
+        },
+        "aspect_ratio": {
+          "values": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16"
+          ],
+          "default": "1:1"
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
     },
     "alibaba/qwen-image-3/text-to-image": {
       "model": "alibaba/qwen-image-3.0-pro",
@@ -2791,6 +3691,15 @@
           ],
           "default": "16:9"
         },
+        "task_type": {
+          "values": [
+            "auto",
+            "reference",
+            "edit",
+            "extend"
+          ],
+          "default": "auto"
+        },
         "generate_audio": {
           "values": [
             false,
@@ -3252,6 +4161,157 @@
         }
       }
     },
+    "bytedance/seedream/v5.5/edit": {
+      "model": "bytedance/seedream-5.5",
+      "operation": "generate_image",
+      "input_type": "image",
+      "references": {
+        "min": 1,
+        "max": 10
+      },
+      "fields": {
+        "background": {
+          "kind": "default_only",
+          "fal_default": "auto"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "auto_2K"
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "watermark": {
+          "kind": "default_only",
+          "fal_default": false
+        }
+      },
+      "yir_parameters": {
+        "resolution": {
+          "values": [
+            "1K",
+            "2K"
+          ],
+          "default": "1K"
+        },
+        "aspect_ratio": {
+          "values": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "3:2",
+            "2:3",
+            "2:1",
+            "1:2",
+            "21:9"
+          ],
+          "default": "1:1"
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
+    "bytedance/seedream/v5.5/text-to-image": {
+      "model": "bytedance/seedream-5.5",
+      "operation": "generate_image",
+      "input_type": "text",
+      "references": {
+        "min": 0,
+        "max": 0
+      },
+      "fields": {
+        "background": {
+          "kind": "default_only",
+          "fal_default": "auto"
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "auto_2K"
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "watermark": {
+          "kind": "default_only",
+          "fal_default": false
+        }
+      },
+      "yir_parameters": {
+        "resolution": {
+          "values": [
+            "1K",
+            "2K"
+          ],
+          "default": "1K"
+        },
+        "aspect_ratio": {
+          "values": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "3:2",
+            "2:3",
+            "2:1",
+            "1:2",
+            "21:9"
+          ],
+          "default": "1:1"
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
     "fal-ai/bytedance/seedream/v4.5/edit": {
       "model": "bytedance/seedream-4.5",
       "operation": "generate_image",
@@ -3470,8 +4530,76 @@
     },
     "fal-ai/flux-2-flex/edit": {
       "model": "bfl/flux-2-flex",
+      "operation": "generate_image",
       "input_type": "image",
-      "unsupported": "Yir bfl/flux-2-flex has no image input mode, so fal-ai/flux-2-flex/edit cannot be migrated yet"
+      "references": {
+        "min": 1,
+        "max": 8
+      },
+      "fields": {
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "guidance_scale": {
+          "kind": "default_only",
+          "fal_default": 3.5
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "auto"
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "num_inference_steps": {
+          "kind": "default_only",
+          "fal_default": 28
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "jpeg",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "safety_tolerance": {
+          "kind": "default_only",
+          "fal_default": "2"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        }
+      },
+      "yir_parameters": {
+        "resolution": {
+          "values": [
+            "1MP"
+          ],
+          "default": "1MP"
+        },
+        "aspect_ratio": {
+          "values": [
+            "1:1"
+          ],
+          "default": "1:1"
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
     },
     "fal-ai/flux-2-max": {
       "model": "bfl/flux-2-max",
@@ -3535,8 +4663,68 @@
     },
     "fal-ai/flux-2-max/edit": {
       "model": "bfl/flux-2-max",
+      "operation": "generate_image",
       "input_type": "image",
-      "unsupported": "Yir bfl/flux-2-max has no image input mode, so fal-ai/flux-2-max/edit cannot be migrated yet"
+      "references": {
+        "min": 1,
+        "max": 8
+      },
+      "fields": {
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "auto"
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "jpeg",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "safety_tolerance": {
+          "kind": "default_only",
+          "fal_default": "2"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        }
+      },
+      "yir_parameters": {
+        "resolution": {
+          "values": [
+            "1MP"
+          ],
+          "default": "1MP"
+        },
+        "aspect_ratio": {
+          "values": [
+            "1:1"
+          ],
+          "default": "1:1"
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
     },
     "fal-ai/flux-2-pro": {
       "model": "bfl/flux-2-pro",
@@ -6666,8 +7854,71 @@
     },
     "fal-ai/wan/v2.7/edit": {
       "model": "alibaba/wan-2.7-image",
+      "operation": "generate_image",
       "input_type": "image",
-      "unsupported": "Yir alibaba/wan-2.7-image has no image input mode, so fal-ai/wan/v2.7/edit cannot be migrated yet"
+      "references": {
+        "min": 1,
+        "max": 9
+      },
+      "fields": {
+        "enable_prompt_expansion": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "square_hd"
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "negative_prompt": {
+          "kind": "default_only",
+          "fal_default": ""
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "jpeg",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        }
+      },
+      "yir_parameters": {
+        "resolution": {
+          "values": [
+            "1K",
+            "2K"
+          ],
+          "default": "2K"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
     },
     "fal-ai/wan/v2.7/image-to-video": {
       "model": "alibaba/wan-2.7",
@@ -6776,8 +8027,71 @@
     },
     "fal-ai/wan/v2.7/pro/edit": {
       "model": "alibaba/wan-2.7-image-pro",
+      "operation": "generate_image",
       "input_type": "image",
-      "unsupported": "Yir alibaba/wan-2.7-image-pro has no image input mode, so fal-ai/wan/v2.7/pro/edit cannot be migrated yet"
+      "references": {
+        "min": 1,
+        "max": 9
+      },
+      "fields": {
+        "enable_prompt_expansion": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "square_hd"
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "negative_prompt": {
+          "kind": "default_only",
+          "fal_default": ""
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "jpeg",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        }
+      },
+      "yir_parameters": {
+        "resolution": {
+          "values": [
+            "1K",
+            "2K"
+          ],
+          "default": "2K"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
     },
     "fal-ai/wan/v2.7/pro/text-to-image": {
       "model": "alibaba/wan-2.7-image-pro",
@@ -7687,8 +9001,67 @@
     },
     "meta/muse-image/edit": {
       "model": "meta/muse-image-1.0",
+      "operation": "generate_image",
       "input_type": "image",
-      "unsupported": "Yir meta/muse-image-1.0 has no image input mode, so meta/muse-image/edit cannot be migrated yet"
+      "references": {
+        "min": 1,
+        "max": 10
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": null
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "webp",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        }
+      },
+      "yir_parameters": {
+        "resolution": {
+          "values": [
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto",
+            "1:1",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "16:9",
+            "9:16"
+          ],
+          "default": "auto"
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
     },
     "meta/muse-image/text-to-image": {
       "model": "meta/muse-image-1.0",
@@ -7824,6 +9197,190 @@
             "adaptive"
           ],
           "default": "adaptive"
+        },
+        "generate_audio": {
+          "values": [
+            true
+          ],
+          "default": true
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
+    "minimax/h3-max-turbo/image-to-video": {
+      "model": "minimax/h3-max-turbo",
+      "operation": "generate_video",
+      "input_type": "image",
+      "references": {
+        "min": 1,
+        "max": 2,
+        "by_role": {
+          "first_frame": {
+            "minimum": 1,
+            "maximum": 1
+          },
+          "last_frame": {
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "fields": {
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "end_image_url": {
+          "kind": "reference",
+          "role": "last_frame",
+          "required": false
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": false
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "prompt_expansion_mode": {
+          "kind": "default_only",
+          "fal_default": "balanced"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "768P"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "target_audio_url": {
+          "kind": "unsupported",
+          "note": "Yir does not support lip-sync to target audio"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 5,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "480p",
+            "768P"
+          ],
+          "default": "768P"
+        },
+        "aspect_ratio": {
+          "values": [
+            "adaptive"
+          ],
+          "default": "adaptive"
+        },
+        "generate_audio": {
+          "values": [
+            true
+          ],
+          "default": true
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
+    "minimax/h3-max-turbo/text-to-video": {
+      "model": "minimax/h3-max-turbo",
+      "operation": "generate_video",
+      "input_type": "text",
+      "references": {
+        "min": 0,
+        "max": 0
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 5
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "prompt_expansion_mode": {
+          "kind": "default_only",
+          "fal_default": "balanced"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "768P"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        },
+        "target_audio_url": {
+          "kind": "unsupported",
+          "note": "Yir does not support lip-sync to target audio"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 5,
+          "minimum": 5,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "480p",
+            "768P"
+          ],
+          "default": "768P"
+        },
+        "aspect_ratio": {
+          "values": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "default": "16:9"
         },
         "generate_audio": {
           "values": [
@@ -9734,6 +11291,230 @@
             "16:9",
             "9:16",
             "1:1",
+            "3:2",
+            "2:3"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            true
+          ],
+          "default": true
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
+    "xai/grok-imagine-video/v1.5/image-to-video": {
+      "model": "spacexai/grok-imagine-video-1.5",
+      "operation": "generate_video",
+      "input_type": "image",
+      "references": {
+        "min": 1,
+        "max": 2,
+        "by_role": {
+          "first_frame": {
+            "minimum": 1,
+            "maximum": 1
+          },
+          "last_frame": {
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "fields": {
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 6
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "first_frame",
+          "required": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 8,
+          "minimum": 1,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "480p",
+            "720p",
+            "1080p"
+          ],
+          "default": "480p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "generate_audio": {
+          "values": [
+            true
+          ],
+          "default": true
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
+    "xai/grok-imagine-video/v1.5/reference-to-video": {
+      "model": "spacexai/grok-imagine-video-1.5",
+      "operation": "generate_video",
+      "input_type": "reference",
+      "references": {
+        "min": 2,
+        "max": 7
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 8
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "reference_image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "480p"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 8,
+          "minimum": 1,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "480p",
+            "720p"
+          ],
+          "default": "480p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3"
+          ],
+          "default": "16:9"
+        },
+        "generate_audio": {
+          "values": [
+            true
+          ],
+          "default": true
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
+    "xai/grok-imagine-video/v1.5/text-to-video": {
+      "model": "spacexai/grok-imagine-video-1.5",
+      "operation": "generate_video",
+      "input_type": "text",
+      "references": {
+        "min": 0,
+        "max": 0
+      },
+      "fields": {
+        "aspect_ratio": {
+          "kind": "param",
+          "param": "aspect_ratio",
+          "fal_default": "16:9"
+        },
+        "duration": {
+          "kind": "param",
+          "param": "duration",
+          "fal_default": 6
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "720p"
+        }
+      },
+      "yir_parameters": {
+        "duration": {
+          "default": 8,
+          "minimum": 1,
+          "maximum": 15
+        },
+        "resolution": {
+          "values": [
+            "480p",
+            "720p",
+            "1080p"
+          ],
+          "default": "480p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
             "3:2",
             "2:3"
           ],
