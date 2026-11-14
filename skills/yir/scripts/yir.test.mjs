@@ -19,6 +19,7 @@ async function fixture(t, jobs, state = {jobs:{}}) {
   import {appendFile} from 'node:fs/promises';
   globalThis.fetch = async (url, opts={}) => {
     const p = new URL(url).pathname;
+    if(process.env.RETIRED==='1' && (p.startsWith('/v1/models') || p.endsWith('/quotes'))) return new Response(JSON.stringify({error:{code:'YIR_INVALID_REQUEST',retryable:false,details:[{reason:'retired'}]}}),{status:400});
     let data;
     if(p==='/v1/models') data={models:[{id:'test/image',operations:[{operation:'generate_image',input_modes:['text']}]},{id:'test/speech',operations:[{operation:'generate_speech',input_modes:['text']}]},{id:'test/music',operations:[{operation:'generate_music',input_modes:['text']}]},{id:'test/mesh',operations:[{operation:'generate_3d',input_modes:['image','multiview','text']}]}]};
     else if(p.includes('/models/test/mesh')||p.includes('/models/test/tripo')) data={operations:[{operation:'generate_3d',input_modes:p.includes('mesh')?['image','multiview','text']:['image','text'],input_constraints:{text:{min_references:0,max_references:0,allowed_reference_roles:[]},image:{min_references:1,max_references:1,allowed_reference_roles:['reference_image'],required_reference_roles:['reference_image']},multiview:{min_references:2,max_references:4,allowed_reference_roles:['front_view','left_view','back_view','right_view'],required_reference_roles:['front_view'],reference_counts_by_role:{front_view:{minimum:1,maximum:1},back_view:{minimum:0,maximum:1},left_view:{minimum:0,maximum:1},right_view:{minimum:0,maximum:1}}}},parameters:[{name:'texture',type:'string',required:false,values:p.includes('mesh')?['none','standard']:['none','standard','hd'],default:'standard'},{name:'pbr',type:'boolean',required:false,values:[false,true],default:false},{name:'face_limit',type:'integer',required:false,default:30000,minimum:100,maximum:300000},{name:'topology',type:'string',required:false,values:['triangle'],default:'triangle'},{name:'n',type:'integer',required:false,values:[1],default:1}]}]};
@@ -143,6 +144,15 @@ test('uncertain uncapped submit can replay without its quote when no budget is r
  const f=await fixture(t,['old'],{jobs:{old:{idempotency_key:'original',body}}});
  const r=await f.run([],{},null);
  assert.equal(r.code,0);assert.deepEqual(r.calls,[body]);
+});
+
+test('retirement does not revalidate or requote an uncertain saved submission',async t=>{
+ const body={model:'test/image',input:{type:'text',prompt:'test'},parameters:{},max_cost:'0.05'};
+ const f=await fixture(t,['old'],{jobs:{old:{idempotency_key:'original',body,quote:.05}}});
+ const r=await f.run([],{RETIRED:'1'});
+ assert.equal(r.code,0);assert.deepEqual(r.calls,[body]);
+ assert.equal(r.state.jobs.old.idempotency_key,'original');
+ assert.deepEqual(r.paths,['/v1/images/generations']);
 });
 test('status polling waits out a 429 per Retry-After',async t=>{
  const f=await fixture(t,['a']);const started=Date.now();const r=await f.run([],{RATE_LIMIT_STATUS:'1'});
