@@ -2,6 +2,88 @@
   "channel": "fal",
   "yir_contract_schema": "v1",
   "endpoints": {
+    "krea/v3/edit": {
+      "model": "krea/krea-3",
+      "operation": "generate_image",
+      "input_type": "image",
+      "references": {
+        "min": 1,
+        "max": 8
+      },
+      "fields": {
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "auto"
+        },
+        "image_urls": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "negative_prompt": {
+          "kind": "default_only",
+          "fal_default": ""
+        },
+        "output_format": {
+          "kind": "delivery",
+          "fal_default": "png",
+          "note": "the file format depends on the delivering channel; Yir cannot set it yet"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "reasoning_level": {
+          "kind": "default_only",
+          "fal_default": "medium"
+        },
+        "regional_edit": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "regions": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        }
+      },
+      "yir_parameters": {
+        "resolution": {
+          "values": [
+            "1K",
+            "2K"
+          ],
+          "default": "1K"
+        },
+        "aspect_ratio": {
+          "values": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16"
+          ],
+          "default": "1:1"
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
     "kling/v4/flash/image-to-video": {
       "model": "klingai/kling-4.0-flash",
       "operation": "generate_video",
