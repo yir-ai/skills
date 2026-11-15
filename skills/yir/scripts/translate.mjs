@@ -67,8 +67,8 @@ const TIER_BY_LONG_EDGE = { 512: '0.5K', 1024: '1K', 2048: '2K', 4096: '4K' }
 
 // imageSizeToParameters maps fal image_size (preset, "WxH", "auto", "auto_2K" or {width,height}) to Yir
 // parameters, or returns null. Yir delivers a tier plus aspect ratio; exact pixels depend on the channel.
-function imageSizeToParameters(value, yirParameters) {
-  if (typeof value === 'string') {
+function imageSizeToParameters(value, yirParameters, exactSizePresets) {
+  if (typeof value === 'string' && !exactSizePresets) {
     const auto = value.trim().toLowerCase().match(/^auto(?:_(\d+k))?$/)
     if (auto) {
       const aspect = normalizeValue('aspect_ratio', 'auto', yirParameters.aspect_ratio)
@@ -82,7 +82,8 @@ function imageSizeToParameters(value, yirParameters) {
       return result
     }
   }
-  let pixels = typeof value === 'string' ? FAL_IMAGE_SIZE_PRESETS[value] : value && [value.width, value.height]
+  const presets = exactSizePresets ?? FAL_IMAGE_SIZE_PRESETS
+  let pixels = typeof value === 'string' ? presets[value] : value && [value.width, value.height]
   if (!pixels && typeof value === 'string') {
     const wh = value.trim().match(/^(\d+)\s*[x*]\s*(\d+)$/i)
     if (wh) pixels = [Number(wh[1]), Number(wh[2])]
@@ -91,6 +92,7 @@ function imageSizeToParameters(value, yirParameters) {
   const [width, height] = pixels
   const exact = `${width}x${height}`
   if (allowed(yirParameters.size, exact)) return { size: exact }
+  if (exactSizePresets) return null
   const gcd = (a, b) => (b ? gcd(b, a % b) : a)
   const g = gcd(width, height)
   const ratio = `${width / g}:${height / g}`
@@ -178,7 +180,7 @@ export function translate(dialect, endpoint, input) {
       case 'image_size': {
         const raw = present ? value : field.fal_default
         if (raw === undefined || raw === null) break
-        const mapped = imageSizeToParameters(raw, entry.yir_parameters)
+        const mapped = imageSizeToParameters(raw, entry.yir_parameters, field.exact_size_presets)
         if (!mapped) {
           errors.push({ field: name, reason: `${present ? 'value' : `${dialect.channel} default`} ${JSON.stringify(raw)} has no exact Yir resolution tier and aspect ratio; set resolution / aspect_ratio from the Yir model contract instead` })
           break
@@ -229,6 +231,7 @@ export function translate(dialect, endpoint, input) {
   // Yir parameters the channel has no field for run with Yir's default; list them for review.
   for (const [param, spec] of Object.entries(entry.yir_parameters)) {
     if (param in parameters || spec.default === undefined || param === 'n') continue
+    if ('size' in parameters && (param === 'resolution' || param === 'aspect_ratio')) continue
     report.push({ field: `(yir) ${param}`, action: 'yir_default', detail: `no ${dialect.channel} field; Yir uses its default ${JSON.stringify(spec.default)}` })
   }
 

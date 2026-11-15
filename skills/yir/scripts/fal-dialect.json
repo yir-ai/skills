@@ -2,6 +2,122 @@
   "channel": "fal",
   "yir_contract_schema": "v1",
   "endpoints": {
+    "ideogram/v4.5": {
+      "model": "ideogram/ideogram-4.5",
+      "operation": "generate_image",
+      "input_type": "text",
+      "references": {
+        "min": 0,
+        "max": 0
+      },
+      "fields": {
+        "enable_prompt_expansion": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "enable_safety_checker": {
+          "kind": "default_only",
+          "fal_default": true
+        },
+        "image_size": {
+          "kind": "image_size",
+          "fal_default": "square_hd",
+          "exact_size_presets": {
+            "square_hd": [
+              1024,
+              1024
+            ],
+            "square": [
+              1024,
+              1024
+            ],
+            "portrait_4_3": [
+              864,
+              1152
+            ],
+            "portrait_16_9": [
+              720,
+              1280
+            ],
+            "landscape_4_3": [
+              1152,
+              864
+            ],
+            "landscape_16_9": [
+              1280,
+              720
+            ]
+          }
+        },
+        "num_images": {
+          "kind": "output_count"
+        },
+        "prompt": {
+          "kind": "prompt"
+        },
+        "quality": {
+          "kind": "param",
+          "param": "quality",
+          "fal_default": "medium"
+        },
+        "seed": {
+          "kind": "default_only",
+          "fal_default": null
+        },
+        "sync_mode": {
+          "kind": "delivery",
+          "fal_default": false,
+          "note": "Yir always returns short-lived signed URLs, never data URIs"
+        }
+      },
+      "yir_parameters": {
+        "resolution": {
+          "values": [
+            "1K",
+            "2K"
+          ],
+          "default": "1K"
+        },
+        "aspect_ratio": {
+          "values": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16"
+          ],
+          "default": "1:1"
+        },
+        "size": {
+          "values": [
+            "1024x1024",
+            "1152x864",
+            "864x1152",
+            "1280x720",
+            "720x1280",
+            "2048x2048",
+            "2304x1728",
+            "1728x2304",
+            "2560x1440",
+            "1440x2560"
+          ]
+        },
+        "quality": {
+          "values": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "default": "medium"
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
+    },
     "krea/v3/edit": {
       "model": "krea/krea-3",
       "operation": "generate_image",
