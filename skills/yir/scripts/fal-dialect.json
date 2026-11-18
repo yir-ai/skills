@@ -11731,6 +11731,60 @@
           "default": 1
         }
       }
+    },
+    "heygen/avatar-6/turbo/image-to-video": {
+      "model": "heygen/heygen-avatar-6-turbo",
+      "operation": "generate_video",
+      "input_type": "reference",
+      "references": {
+        "min": 2,
+        "max": 2
+      },
+      "fields": {
+        "audio_url": {
+          "kind": "reference",
+          "role": "reference_audio",
+          "required": true
+        },
+        "enable_safety_checker": {
+          "kind": "fixed",
+          "value": true,
+          "fal_default": true
+        },
+        "image_url": {
+          "kind": "reference",
+          "role": "reference_image",
+          "required": true
+        },
+        "motion_prompt": {
+          "kind": "prompt"
+        },
+        "resolution": {
+          "kind": "param",
+          "param": "resolution",
+          "fal_default": "1080p"
+        }
+      },
+      "yir_parameters": {
+        "resolution": {
+          "values": [
+            "1080p"
+          ],
+          "default": "1080p"
+        },
+        "aspect_ratio": {
+          "values": [
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "n": {
+          "values": [
+            1
+          ],
+          "default": 1
+        }
+      }
     }
   }
 }
