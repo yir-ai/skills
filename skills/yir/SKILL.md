@@ -90,6 +90,9 @@ node scripts/yir.mjs image -m openai/gpt-image-2.6-flare --prompt "..." -p outpu
 # Text to video
 node scripts/yir.mjs video -m bytedance/seedance-2.0-mini --prompt "..." -p duration=5 -p resolution=480p
 
+# Native 4K (Seedance 2.5 via APIMart or KIE). Text and reference generation use 16:9; first-frame video uses auto.
+node scripts/yir.mjs video -m bytedance/seedance-2.5 --prompt "A small boat on a calm lake" -p resolution=4K -p aspect_ratio=16:9 -p duration=4
+
 # First-frame video, optional last frame
 node scripts/yir.mjs video -m <model> --prompt "..." --ref first_frame=./start.png --ref last_frame=./end.png
 
