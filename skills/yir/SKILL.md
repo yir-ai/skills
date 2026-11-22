@@ -235,6 +235,7 @@ Failures print `{"error": {code, message, action, retryable, request_id}, "hint"
 
 - `YIR_INSUFFICIENT_BALANCE` or action `add_funds`: ask the user to top up in the Yir Console at https://yir.ai. Do not retry.
 - `YIR_SPEND_LIMIT_EXCEEDED`: the API Key's monthly limit is reached; the user can raise it in the Console.
+- `YIR_ACCOUNT_RESTRICTED`: the account may not submit new Jobs for now, for example paused for 24 hours after repeated content safety rejections. Do not retry; tell the user when submission resumes (in the message) and that the rejected prompts or references need changing.
 - `YIR_BUDGET_EXCEEDED`: the current price exceeds `--max-cost`; the message names the lowest current estimate. Quote again and tell the user the old cap and the new price, then let them choose: raise `--max-cost`, or pick a cheaper model or spec. Do not raise the cap or relax `fidelity` on your own.
 - `YIR_INVALID_REQUEST`, `YIR_MODEL_NOT_FOUND`: re-check with `models` / `model <id>`.
 - `YIR_FIDELITY_EXCLUDED`: no channel meets the requested `fidelity`; use `genuine`, or another model.
