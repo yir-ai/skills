@@ -144,6 +144,16 @@ export function translate(dialect, endpoint, input) {
     switch (field.kind) {
       case 'prompt':
         if (present) prompt = String(value)
+        // fal Kling 4.0 numbers references as @Image1 / @Video1; Yir's portable spelling is @image_1 / @video_1.
+        if (present && field.reference_tokens === 'kling4') prompt = prompt.replace(/@(Image|Video)(\d+)\b/g, (_, media, index) => `@${media.toLowerCase()}_${index}`)
+        break
+      case 'hdr':
+        if (present && typeof value !== 'boolean') {
+          errors.push({ field: name, reason: `invalid value ${JSON.stringify(value)}` })
+        } else if (value) {
+          parameters.dynamic_range = 'hdr'
+          report.push({ field: name, action: 'mapped', detail: 'parameters.dynamic_range="hdr"' })
+        }
         break
       case 'reference': {
         if (!present) {
