@@ -14,6 +14,11 @@ import { fileURLToPath } from 'node:url'
 import { translate } from './translate.mjs'
 
 const BASE_URL = (process.env.YIR_BASE_URL || 'https://gateway.yir.ai').trim().replace(/\/+$/, '')
+const QUOTE_PATHS = new Map([
+  ['generate_image', '/v1/images/quotes'],
+  ['generate_video', '/v1/videos/quotes'],
+  ['generate_speech', '/v1/audio/quotes'],
+])
 const HELP = `from-fal - translate a fal request into a Yir request
 
   node scripts/from-fal.mjs <fal endpoint id> --json '<body>' [--quote]
@@ -21,7 +26,7 @@ const HELP = `from-fal - translate a fal request into a Yir request
   node scripts/from-fal.mjs --list            list fal endpoints that map to a Yir model
 
 Prints {ok, request, jobs, report, errors[, quote]}. "request" is the body for
-POST /v1/images|videos/generations. "jobs" > 1 means submit that many Jobs.
+POST /v1/{images|videos|audio}/generations. "jobs" > 1 means submit that many Jobs.
 --quote also asks Yir for a price (creates no Job, charges nothing; needs YIR_API_KEY).`
 
 function usage(message) {
@@ -65,8 +70,9 @@ const result = translate(dialect, endpoint, body)
 if (quote && result.ok) {
   const key = process.env.YIR_API_KEY
   if (!key) usage('--quote needs YIR_API_KEY')
-  const kind = dialect.endpoints[endpoint].operation === 'generate_video' ? 'videos' : 'images'
-  const response = await fetch(`${BASE_URL}/v1/${kind}/quotes`, {
+  const quotePath = QUOTE_PATHS.get(dialect.endpoints[endpoint].operation)
+  if (!quotePath) usage(`--quote does not support this endpoint's operation: ${endpoint}`)
+  const response = await fetch(`${BASE_URL}${quotePath}`, {
     method: 'POST',
     // User-Agent keeps the yir-skill/ prefix that Skill usage is counted by, and marks fal migrations; no request content is added.
     headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json', 'user-agent': 'yir-skill/from-fal' },

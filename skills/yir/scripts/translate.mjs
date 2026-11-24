@@ -45,6 +45,7 @@ export function normalizeValue(param, value, spec) {
 // a Yir Quote is the final authority.
 export function allowed(spec, value) {
   if (!spec) return false
+  if (spec.pattern) return typeof value === 'string' && new RegExp(spec.pattern).test(value)
   if (spec.values?.some(v => v === value)) return true
   if (spec.string_values?.includes(value)) return true
   if (!spec.values && Number.isInteger(value) && spec.minimum !== undefined && spec.maximum !== undefined) {
@@ -55,12 +56,15 @@ export function allowed(spec, value) {
 
 function describeAllowed(spec) {
   if (!spec) return '(not a parameter in this mode)'
+  if (spec.pattern) return `a string matching ${spec.pattern}`
   if (spec.values) return [...spec.values, ...(spec.string_values ?? [])].join(', ')
   if (spec.minimum !== undefined) return `${spec.minimum}–${spec.maximum}${spec.string_values ? ', ' + spec.string_values.join(', ') : ''}`
   return 'see the model contract'
 }
 
 const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null)
+const matchesSettings = (value, settings) => value !== null && typeof value === 'object' && !Array.isArray(value) &&
+  Object.entries(value).every(([key, part]) => Object.hasOwn(settings, key) && same(part, settings[key]))
 
 // A K tier is known only when the long edge equals the tier's base edge; other sizes have no equivalent.
 const TIER_BY_LONG_EDGE = { 512: '0.5K', 1024: '1K', 2048: '2K', 4096: '4K' }
@@ -167,6 +171,14 @@ export function translate(dialect, endpoint, input) {
           : { field: name, action: 'filled_default', detail: `not set; wrote the ${dialect.channel} default explicitly: parameters.${field.param}=${JSON.stringify(normalized)}` })
         break
       }
+      case 'minimax_speech_voice':
+        if (!present || !matchesSettings(value, field.settings) || value.voice_id !== field.settings.voice_id) {
+          errors.push({ field: name, reason: `pass voice_id ${JSON.stringify(field.settings.voice_id)} explicitly with default voice settings; the fal default ${JSON.stringify(field.fal_default)} is a different voice` })
+        } else {
+          parameters.voice = value.voice_id
+          report.push({ field: name, action: 'mapped', detail: `parameters.voice=${JSON.stringify(value.voice_id)}` })
+        }
+        break
       case 'output_count': {
         const count = present ? Number(value) : 1
         if (!Number.isInteger(count) || count < 1) {
@@ -208,10 +220,12 @@ export function translate(dialect, endpoint, input) {
         break
       case 'fixed':
         // Yir 对这个渠道字段只发固定值；取值不同时无法兑现。
-        if (present && !same(value, field.value)) {
+        if (!present && field.require_matching_default && !same(field.fal_default, field.value)) {
+          errors.push({ field: name, reason: `the ${dialect.channel} default ${JSON.stringify(field.fal_default)} cannot be preserved; pass ${JSON.stringify(field.value)} explicitly` })
+        } else if (present && !(field.match_partial_object ? matchesSettings(value, field.value) : same(value, field.value))) {
           errors.push({ field: name, reason: `Yir always sends ${JSON.stringify(field.value)} for this ${dialect.channel} option; ${JSON.stringify(value)} cannot be honoured` })
         } else {
-          report.push({ field: name, action: 'fixed', detail: `Yir sends ${JSON.stringify(field.value)}${present ? '' : ` (${dialect.channel} default ${JSON.stringify(field.fal_default)})`}` })
+          report.push({ field: name, action: 'fixed', detail: `Yir sends ${JSON.stringify(field.value)}${present || !Object.hasOwn(field, 'fal_default') ? '' : ` (${dialect.channel} default ${JSON.stringify(field.fal_default)})`}` })
         }
         break
       case 'unsupported':
