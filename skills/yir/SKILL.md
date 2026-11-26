@@ -150,6 +150,8 @@ node scripts/yir.mjs cancel <id>
 
 Options: `-p key=value` (repeatable), `--image` (reference_image for image jobs, first_frame for video jobs), `--ref role=src` (repeatable), `--lyrics TEXT` / `--lyrics-file PATH` (songs), `--texture`, `--pbr`, `--face-limit N`, `--topology` (3D), `--duration SEC` (same as `-p duration=SEC`), `--max-cost USD` (caps the Job's total charge), `--out DIR`, `--name STEM`, `--no-wait`, `--timeout SEC` (default 600 image, 1800 video, 900 music, 1800 3d), `--routing JSON`.
 
+**MiniMax H3 Highspeed and Lite:** `minimax/minimax-h3-highspeed` and `minimax/minimax-h3-lite` accept text or first/last frames for 4–15 seconds of video with native audio. Use `-p resolution=480p` or `-p resolution=768P`. For a first-frame quote, pass `--ref first_frame=./start.png` and optionally `--ref last_frame=./end.png`; the output follows the first frame's aspect ratio. Check the live model contract before using a new operation if the Gateway is on an older release.
+
 ## Audio
 
 `audio` runs music, sound-effect and text-to-speech models (the `/v1/audio` endpoints). `music` is its old name and still works, as do `--type music`, `quote music` and batch `type: "music"`. It runs music and sound-effect models from a text prompt (style, mood, scene, or the sound) and optional lyrics (lines separated by newlines, tags such as `[Verse]` and `[Chorus]` allowed). Prompt and lyrics limits are per model. Only a Suno cover takes a reference file (below). Pick one of three forms; the script rejects other combinations before sending anything, and the API rejects forms a model does not offer:
